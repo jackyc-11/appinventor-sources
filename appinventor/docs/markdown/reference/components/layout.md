@@ -141,6 +141,8 @@ None
 {:id="HorizontalArrangement.Top" .number} *Top*
 : Specifies the position of the Top edge of the component relative to an
  AbsoluteArrangement.
+{:id="HorizontalArrangement.Name" .text .ro .bo} *Name*
+: Gets the name of the HorizontalArrangement.
 
 {:id="HorizontalArrangement.Visible" .boolean} *Visible*
 : Specifies whether the `HorizontalArrangement` should be visible on the screen.  Value is `true`{:.logic.block}
@@ -211,6 +213,8 @@ A formatting element in which to place components that should be displayed from 
 {:id="HorizontalScrollArrangement.Top" .number} *Top*
 : Specifies the position of the Top edge of the component relative to an
  AbsoluteArrangement.
+{:id="HorizontalScrollArrangement.Name" .text .ro .bo} *Name*
+: Gets the name of the HorizontalScrollArrangement.
 
 {:id="HorizontalScrollArrangement.Visible" .boolean} *Visible*
 : Specifies whether the `HorizontalScrollArrangement` should be visible on the screen.  Value is `true`{:.logic.block}
@@ -277,6 +281,8 @@ Use a table arrangement component to display a group of components in a tabular 
 {:id="TableArrangement.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="TableArrangement.Name" .text .ro .bo} *Name*
+: Gets the name of the TableArrangement.
 
 {:id="TableArrangement.Rows" .number .do} *Rows*
 : Determines the number of rows in the table.
@@ -377,6 +383,8 @@ None
 {:id="VerticalArrangement.Top" .number} *Top*
 : Specifies the position of the Top edge of the component relative to an
  AbsoluteArrangement.
+{:id="VerticalArrangement.Name" .text .ro .bo} *Name*
+: Gets the name of the VerticalArrangement.
 
 {:id="VerticalArrangement.Visible" .boolean} *Visible*
 : Specifies whether the `VerticalArrangement` should be visible on the screen.  Value is `true`{:.logic.block}
@@ -447,6 +455,8 @@ A formatting element in which to place components that should be displayed one b
 {:id="VerticalScrollArrangement.Top" .number} *Top*
 : Specifies the position of the Top edge of the component relative to an
  AbsoluteArrangement.
+{:id="VerticalScrollArrangement.Name" .text .ro .bo} *Name*
+: Gets the name of the VerticalScrollArrangement.
 
 {:id="VerticalScrollArrangement.Visible" .boolean} *Visible*
 : Specifies whether the `VerticalScrollArrangement` should be visible on the screen.  Value is `true`{:.logic.block}

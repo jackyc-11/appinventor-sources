@@ -121,6 +121,11 @@ public class Trendline implements ChartComponent, DataSourceChangeListener {
     this.componentName = componentName;
   }
 
+  @SimpleProperty
+  public String Name() {
+    return componentName;
+  }
+
   /**
    * Called from call-Initialize-of-components, initializes the line of best fit data object
    * if not already done so.

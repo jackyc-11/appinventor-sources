@@ -389,6 +389,9 @@
              (gnu.mapping.Environment:get form-environment name)
              default-value))
 
+       (define ($lookupComponentByName name :: java.lang.String) :: com.google.appinventor.components.runtime.Component
+         (lookup-in-form-environment (string->symbol name)))
+
        (define (is-bound-in-form-environment name :: gnu.mapping.Symbol)
          (gnu.mapping.Environment:isBound form-environment name))
 

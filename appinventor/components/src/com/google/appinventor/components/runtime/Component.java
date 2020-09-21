@@ -7,6 +7,7 @@
 package com.google.appinventor.components.runtime;
 
 import com.google.appinventor.components.annotations.SimpleObject;
+import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentConstants;
 
 /**
@@ -22,12 +23,19 @@ public interface Component {
   public HandlesEventDispatching getDispatchDelegate();
 
   /**
-   * Sets the component name from Scheme runtime.
-   * @param componentName component name
+   * Sets the component name from the runtime.
+   *
+   * @param componentName the name of the component
    */
-  // We add the method here to force a build error in case a component did not
-  //   implement it, rather than receiving runtime errors.
   void setComponentName(final String componentName);
+
+  /**
+   * Gets the name of the %type%.
+   *
+   * @return the component's name
+   */
+  @SimpleProperty
+  String Name();
 
   /*
    * Components asset directory.

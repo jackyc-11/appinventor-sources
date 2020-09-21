@@ -77,6 +77,8 @@ Button with the ability to detect clicks. Many aspects of its appearance can be 
 {:id="Button.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="Button.Name" .text .ro .bo} *Name*
+: Gets the name of the Button.
 
 {:id="Button.Shape" .number .do} *Shape*
 : Specifies the shape of the `Button`. The valid values for this property are `0` (default),
@@ -195,6 +197,8 @@ None
 {:id="CheckBox.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="CheckBox.Name" .text .ro .bo} *Name*
+: Gets the name of the CheckBox.
 
 {:id="CheckBox.Text" .text} *Text*
 : Specifies the text displayed by the `CheckBox`.
@@ -352,6 +356,9 @@ A button that, when clicked on, launches a popup dialog to allow the user to sel
 {:id="DatePicker.MonthInText" .text .ro .bo} *MonthInText*
 : Returns the name of the Month that was last picked using the DatePicker.
 
+{:id="DatePicker.Name" .text .ro .bo} *Name*
+: Gets the name of the DatePicker.
+
 {:id="DatePicker.Shape" .number .do} *Shape*
 : Specifies the shape of the `DatePicker`. The valid values for this property are `0` (default),
  `1` (rounded), `2` (rectangle), and `3` (oval). The `Shape` will not be visible if an
@@ -462,6 +469,8 @@ Component for displaying images and basic animations.
 {:id="Image.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="Image.Name" .text .ro .bo} *Name*
+: Gets the name of the Image.
 
 {:id="Image.Picture" .text} *Picture*
 : Specifies the path of the `Image`'s `Picture`.
@@ -560,6 +569,8 @@ Labels are components used to show text.
 {:id="Label.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="Label.Name" .text .ro .bo} *Name*
+: Gets the name of the Label.
 
 {:id="Label.Text" .text} *Text*
 : Specifies the text displayed by the label.
@@ -730,6 +741,8 @@ A button that, when clicked on, displays a list of texts for the user to choose 
 {:id="ListPicker.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="ListPicker.Name" .text .ro .bo} *Name*
+: Gets the name of the ListPicker.
 
 {:id="ListPicker.Selection" .text} *Selection*
 : The selected item. When directly changed by the programmer, the [`SelectionIndex`](#ListPicker.SelectionIndex)
@@ -913,6 +926,8 @@ This is a visible component that displays a list of text and image elements in y
 : Specifies the layout's orientation. This may be: `Vertical`, which displays elements
  in rows one after the other; or `Horizontal`, which displays one element at a time and
  allows the user to swipe left or right to brows the elements.
+{:id="ListView.Name" .text .ro .bo} *Name*
+: Gets the name of the ListView.
 
 {:id="ListView.Selection" .text} *Selection*
 : Returns the text in the `ListView` at the position of [`SelectionIndex`](#ListView.SelectionIndex).
@@ -1006,6 +1021,9 @@ The Notifier component displays alert messages and creates Android log entries t
 
 {:id="Notifier.BackgroundColor" .color .wo} *BackgroundColor*
 : Specifies the background color for alerts (not dialogs).
+
+{:id="Notifier.Name" .text .ro .bo} *Name*
+: Gets the name of the Notifier.
 
 {:id="Notifier.NotifierLength" .number .do} *NotifierLength*
 : Specifies the length of time that the alert is shown -- either "short" or "long".
@@ -1152,6 +1170,8 @@ Users enter passwords in a password text box component, which hides the text tha
  decimal point and an optional leading minus sign. This applies to keyboard input only. Even
  if `NumbersOnly` is true, you can set the text to anything at all using the
  [`Text`](#PasswordTextBox.Text) property.
+{:id="PasswordTextBox.Name" .text .ro .bo} *Name*
+: Gets the name of the PasswordTextBox.
 
 {:id="PasswordTextBox.PasswordVisible" .boolean .bo} *PasswordVisible*
 : Specifies whether the password is hidden (default) or shown.
@@ -1306,6 +1326,8 @@ Top-level component containing all other components in the program.
 
 {:id="Screen.NSSpeechRecognitionUsageDescription" .text .wo .do} *NSSpeechRecognitionUsageDescription*
 : Specifies the iOS privacy explanation of why the app needs access to speech recognition.
+{:id="Screen.Name" .text .ro .bo} *Name*
+: Gets the name of the Screen.
 
 {:id="Screen.OpenScreenAnimation" .text} *OpenScreenAnimation*
 : Sets the animation type for the transition of this form opening.
@@ -1437,8 +1459,17 @@ Top-level component containing all other components in the program.
  in your [`Initialize`](#Screen.Initialize) event unless access to that permission is critical to the
  behavior of your app and is needed up front, such as location services for a navigation app.
 
+{:id="Screen.GetComponent" class="method returns component"} <i/> GetComponent(*name*{:.text})
+: Gets the component with the given name. If no such component exists, then the
+ [`ErrorOccurred`](#Screen.ErrorOccurred) event will be run to indicate this.
+
 {:id="Screen.HideKeyboard" class="method"} <i/> HideKeyboard()
 : Hide the soft keyboard
+
+{:id="Screen.NameForComponent" class="method returns text"} <i/> NameForComponent(*component*{:.component})
+: Gets the name for the given component. This can be used in place of the
+ any component blocks for the Name property if the type of the component is
+ not known at compile time.
 
 ## Slider  {#Slider}
 
@@ -1501,6 +1532,9 @@ This class is used to display a `Slider`.
 : Specifies the color of the thumb slider as an alpha-red-green-blue
  integer, i.e., `0xAARRGGBB`.  An alpha of `00`
  indicates fully transparent and `FF` means opaque.
+
+{:id="Slider.Name" .text .ro .bo} *Name*
+: Gets the name of the Slider.
 
 {:id="Slider.ThumbEnabled" .boolean} *ThumbEnabled*
 : Whether or not the slider thumb is being be shown.
@@ -1576,6 +1610,8 @@ A `Spinner` component that displays a dialog with a list of elements. These elem
 {:id="Spinner.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="Spinner.Name" .text .ro .bo} *Name*
+: Gets the name of the Spinner.
 
 {:id="Spinner.Prompt" .text} *Prompt*
 : Specifies the text used for the title of the Spinner window.
@@ -1664,6 +1700,8 @@ A `Spinner` component that displays a dialog with a list of elements. These elem
 {:id="Switch.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="Switch.Name" .text .ro .bo} *Name*
+: Gets the name of the Switch.
 
 {:id="Switch.On" .boolean} *On*
 : True if the switch is in the On state, false otherwise.
@@ -1797,6 +1835,9 @@ Users enter text in a text box component.
  return key. For single line text boxes there is a Done key instead of a return key, and
  pressing Done hides the keyboard. The app should call the HideKeyboard method to hide the
  keyboard for a mutiline text box.
+
+{:id="TextBox.Name" .text .ro .bo} *Name*
+: Gets the name of the TextBox.
 
 {:id="TextBox.NumbersOnly" .boolean} *NumbersOnly*
 : If true, then this `TextBox`` accepts only numbers as keyboard input. Numbers can include a
@@ -1932,6 +1973,9 @@ A button that, when clicked on, opens a dialog to allow the user to select a tim
 {:id="TimePicker.Minute" .number .ro .bo} *Minute*
 : Returns the hour of the time that was last picked using the `TimePicker`.
  The time returned is always in the 24hour format.
+
+{:id="TimePicker.Name" .text .ro .bo} *Name*
+: Gets the name of the TimePicker.
 
 {:id="TimePicker.Shape" .number .do} *Shape*
 : Specifies the shape of the `TimePicker`. The valid values for this property are `0` (default),
@@ -2086,6 +2130,8 @@ Component for viewing Web pages.
 {:id="WebViewer.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="WebViewer.Name" .text .ro .bo} *Name*
+: Gets the name of the WebViewer.
 
 {:id="WebViewer.PromptforPermission" .boolean} *PromptforPermission*
 : Determine if the user should be prompted for permission to use the geolocation API while in

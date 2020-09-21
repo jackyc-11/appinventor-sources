@@ -93,6 +93,8 @@ A button that, when clicked on, displays a list of the contacts to choose among.
 {:id="ContactPicker.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="ContactPicker.Name" .text .ro .bo} *Name*
+: Gets the name of the ContactPicker.
 
 {:id="ContactPicker.PhoneNumber" .text .ro .bo} *PhoneNumber*
 : Returns the primary phone number associated with the selected contact, or the empty string if
@@ -240,6 +242,8 @@ An `EmailPicker` is a kind of text box. If the user begins entering the name or 
 {:id="EmailPicker.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="EmailPicker.Name" .text .ro .bo} *Name*
+: Gets the name of the EmailPicker.
 
 {:id="EmailPicker.Text" .text} *Text*
 : The text in the `EmailPicker`, which can be set by the programmer in the Designer or Blocks Editor,
@@ -325,6 +329,9 @@ An `EmailPicker` is a kind of text box. If the user begins entering the name or 
 ### Properties  {#PhoneCall-Properties}
 
 {:.properties}
+
+{:id="PhoneCall.Name" .text .ro .bo} *Name*
+: Gets the name of the PhoneCall.
 
 {:id="PhoneCall.PhoneNumber" .text} *PhoneNumber*
 : Specifies the phone number to call.
@@ -437,6 +444,8 @@ A button that, when clicked on, displays a list of the contacts' phone numbers t
 {:id="PhoneNumberPicker.Left" .number} *Left*
 : Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.
+{:id="PhoneNumberPicker.Name" .text .ro .bo} *Name*
+: Gets the name of the PhoneNumberPicker.
 
 {:id="PhoneNumberPicker.PhoneNumber" .text .ro .bo} *PhoneNumber*
 : Returns the primary phone number associated with the selected contact, or the empty string if
@@ -547,8 +556,9 @@ Sharing is a non-visible component that enables sharing files and/or messages be
 ### Properties  {#Sharing-Properties}
 
 {:.properties}
-None
 
+{:id="Sharing.Name" .text .ro .bo} *Name*
+: Gets the name of the Sharing.
 
 ### Events  {#Sharing-Events}
 
@@ -623,6 +633,9 @@ None
 : The message that will be sent when the [`SendMessage`](#Texting.SendMessage) method is called.
  The maximum length of a standard SMS message is usually 170. It may be less for languages
  using diacritical marks.
+
+{:id="Texting.Name" .text .ro .bo} *Name*
+: Gets the name of the Texting.
 
 {:id="Texting.PhoneNumber" .text} *PhoneNumber*
 : The number that the message will be sent to when the SendMessage method is called.  The 

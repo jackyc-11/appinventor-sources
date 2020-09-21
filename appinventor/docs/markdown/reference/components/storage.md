@@ -29,6 +29,9 @@ The `CloudDB` component is a Non-visible component that allows you to store data
 
 {:.properties}
 
+{:id="CloudDB.Name" .text .ro .bo} *Name*
+: Gets the name of the CloudDB.
+
 {:id="CloudDB.ProjectID" .text .ro} *ProjectID*
 : Gets the ProjectID for this CloudDB project.
 
@@ -223,6 +226,9 @@ Non-visible component for storing and retrieving files. Use this component to wr
 {:id="File.WritePermission" .boolean .wo .do} *WritePermission*
 : A designer-only property that can be used to enable write access to file storage outside of the
  app-specific directories.
+
+{:id="File.Name" .text .ro .bo} *Name*
+: Gets the name of the File.
 
 ### Events  {#File-Events}
 
@@ -529,6 +535,9 @@ Spreadsheet is a non-visible component for storing and receiving data from
 
 {:.properties}
 
+{:id="TinyDB.Name" .text .ro .bo} *Name*
+: Gets the name of the TinyDB.
+
 {:id="TinyDB.Namespace" .text} *Namespace*
 : Namespace for storing data.
 
@@ -582,6 +591,9 @@ The `TinyWebDB` component communicates with a Web service to store
 ### Properties  {#TinyWebDB-Properties}
 
 {:.properties}
+
+{:id="TinyWebDB.Name" .text .ro .bo} *Name*
+: Gets the name of the TinyWebDB.
 
 {:id="TinyWebDB.ServiceURL" .text} *ServiceURL*
 : Specifies the URL of the  Web service.

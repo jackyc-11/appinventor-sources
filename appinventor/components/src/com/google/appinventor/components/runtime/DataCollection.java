@@ -114,6 +114,11 @@ public abstract class DataCollection<C extends ComponentContainer, M extends Dat
     this.componentName = componentName;
   }
 
+  @SimpleProperty
+  public String Name() {
+    return componentName;
+  }
+
   /**
    * Changes the underlying Executor Service of the threadRunner.
    *

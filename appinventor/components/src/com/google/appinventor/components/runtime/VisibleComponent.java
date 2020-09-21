@@ -87,4 +87,9 @@ public abstract class VisibleComponent implements Component {
   public void setComponentName(final String componentName) {
     this.componentName = componentName;
   }
+
+  @SimpleProperty
+  public String Name() {
+    return componentName;
+  }
 }

@@ -203,6 +203,8 @@
   <dt id="ContactPicker.Left" class="number"><em>Left</em></dt>
   <dd>Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.</dd>
+  <dt id="ContactPicker.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the ContactPicker.</dd>
   <dt id="ContactPicker.PhoneNumber" class="text ro bo"><em>PhoneNumber</em></dt>
   <dd>Returns the primary phone number associated with the selected contact, or the empty string if
  no phone number is associated with the contact.</dd>
@@ -320,6 +322,8 @@
   <dt id="EmailPicker.Left" class="number"><em>Left</em></dt>
   <dd>Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.</dd>
+  <dt id="EmailPicker.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the EmailPicker.</dd>
   <dt id="EmailPicker.Text" class="text"><em>Text</em></dt>
   <dd>The text in the <code class="highlighter-rouge">EmailPicker</code>, which can be set by the programmer in the Designer or Blocks Editor,
  or it can be entered by the user (unless the <a href="#EmailPicker.Enabled"><code class="highlighter-rouge">Enabled</code></a> property is false).</dd>
@@ -392,6 +396,8 @@
 <h3 id="PhoneCall-Properties">Properties</h3>
 
 <dl class="properties">
+  <dt id="PhoneCall.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the PhoneCall.</dd>
   <dt id="PhoneCall.PhoneNumber" class="text"><em>PhoneNumber</em></dt>
   <dd>Specifies the phone number to call.</dd>
 </dl>
@@ -493,6 +499,8 @@
   <dt id="PhoneNumberPicker.Left" class="number"><em>Left</em></dt>
   <dd>Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.</dd>
+  <dt id="PhoneNumberPicker.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the PhoneNumberPicker.</dd>
   <dt id="PhoneNumberPicker.PhoneNumber" class="text ro bo"><em>PhoneNumber</em></dt>
   <dd>Returns the primary phone number associated with the selected contact, or the empty string if
  no phone number is associated with the contact.</dd>
@@ -585,7 +593,10 @@
 
 <h3 id="Sharing-Properties">Properties</h3>
 
-<p class="properties">None</p>
+<dl class="properties">
+  <dt id="Sharing.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the Sharing.</dd>
+</dl>
 
 <h3 id="Sharing-Events">Events</h3>
 
@@ -652,6 +663,8 @@
   <dd>The message that will be sent when the <a href="#Texting.SendMessage"><code class="highlighter-rouge">SendMessage</code></a> method is called.
  The maximum length of a standard SMS message is usually 170. It may be less for languages
  using diacritical marks.</dd>
+  <dt id="Texting.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the Texting.</dd>
   <dt id="Texting.PhoneNumber" class="text"><em>PhoneNumber</em></dt>
   <dd>The number that the message will be sent to when the SendMessage method is called.  The 
  number is a text string with the specified digits (e.g., 6505551212).  Dashes, dots, 
@@ -688,6 +701,7 @@
  <a href="https://developer.android.com/guide/topics/permissions/overview#dangerous_permissions">dangerous permissions</a>
  that will require additional approval if your app is submitted to the Google Play Store.</strong></dd>
 </dl>
+
 
 </article>
 <script>

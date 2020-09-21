@@ -155,7 +155,10 @@
 
 <h3 id="Camcorder-Properties">Properties</h3>
 
-<p class="properties">None</p>
+<dl class="properties">
+  <dt id="Camcorder.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the Camcorder.</dd>
+</dl>
 
 <h3 id="Camcorder-Events">Events</h3>
 
@@ -186,7 +189,10 @@
 
 <h3 id="Camera-Properties">Properties</h3>
 
-<p class="properties">None</p>
+<dl class="properties">
+  <dt id="Camera.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the Camera.</dd>
+</dl>
 
 <h3 id="Camera-Events">Events</h3>
 
@@ -355,6 +361,8 @@
   <dt id="ImagePicker.Left" class="number"><em>Left</em></dt>
   <dd>Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.</dd>
+  <dt id="ImagePicker.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the ImagePicker.</dd>
   <dt id="ImagePicker.Selection" class="text ro bo"><em>Selection</em></dt>
   <dd>Path to the file containing the image that was selected.</dd>
   <dt id="ImagePicker.Shape" class="number do"><em>Shape</em></dt>
@@ -437,6 +445,8 @@
   <dt id="Player.Loop" class="boolean"><em>Loop</em></dt>
   <dd>If true, the <code class="highlighter-rouge">Player</code> will loop when it plays. Setting <code class="highlighter-rouge">Loop</code> while the player is playing will
  affect the current playing.</dd>
+  <dt id="Player.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the Player.</dd>
   <dt id="Player.PlayOnlyInForeground" class="boolean"><em>PlayOnlyInForeground</em></dt>
   <dd>If true, the <code class="highlighter-rouge">Player</code> will pause playing when leaving the current screen; if false
  (default option), the <code class="highlighter-rouge">Player</code> continues playing whenever the current screen is displaying or
@@ -491,6 +501,8 @@
  milliseconds.
  Once the sound starts playing, all further <a href="#Sound.Play"><code class="highlighter-rouge">Play</code></a> calls will be ignored
  until the interval has elapsed.</dd>
+  <dt id="Sound.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the Sound.</dd>
   <dt id="Sound.Source" class="text"><em>Source</em></dt>
   <dd>The name of the sound file. Only certain formats are supported.
  See http://developer.android.com/guide/appendix/media-formats.html.</dd>
@@ -524,6 +536,8 @@
 <h3 id="SoundRecorder-Properties">Properties</h3>
 
 <dl class="properties">
+  <dt id="SoundRecorder.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the SoundRecorder.</dd>
   <dt id="SoundRecorder.SavedRecording" class="text"><em>SavedRecording</em></dt>
   <dd>Specifies the path to the file where the recording should be stored. If this property is the
  empty string, then starting a recording will create a file in an appropriate location. If the
@@ -569,6 +583,8 @@
    with an optional region suffix, such as en or es-MX. The set of supported languages will
    vary by device.</p>
   </dd>
+  <dt id="SpeechRecognizer.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the SpeechRecognizer.</dd>
   <dt id="SpeechRecognizer.Result" class="text ro bo"><em>Result</em></dt>
   <dd>Returns the last text produced by the recognizer.</dd>
   <dt id="SpeechRecognizer.UseLegacy" class="boolean"><em>UseLegacy</em></dt>
@@ -641,6 +657,8 @@
   <dd>Sets the language for TextToSpeech. This changes the way that words are pronounced, not the
  actual language that is spoken. For example, setting the language to French and speaking
  English text will sound like someone speaking English with a French accent.</dd>
+  <dt id="TextToSpeech.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the TextToSpeech.</dd>
   <dt id="TextToSpeech.Pitch" class="number"><em>Pitch</em></dt>
   <dd>Sets the speech pitch for the TextToSpeech.
 
@@ -763,6 +781,8 @@
   <dt id="VideoPlayer.Left" class="number"><em>Left</em></dt>
   <dd>Specifies the position of the Left edge of the component relative to an
  AbsoluteArrangement.</dd>
+  <dt id="VideoPlayer.Name" class="text ro bo"><em>Name</em></dt>
+  <dd>Gets the name of the VideoPlayer.</dd>
   <dt id="VideoPlayer.Source" class="text wo"><em>Source</em></dt>
   <dd>Sets the “path” to the video. Usually, this will be the name of the video file, which should be
  added in the Designer.</dd>
@@ -804,6 +824,7 @@
   <dt id="VideoPlayer.Stop" class="method"><i></i> Stop()</dt>
   <dd>Resets to start of video and pauses it if video was playing.</dd>
 </dl>
+
 
 </article>
 <script>

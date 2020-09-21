@@ -27,6 +27,7 @@ import com.google.appinventor.components.runtime.util.ErrorMessages;
 public abstract class AndroidViewComponent extends VisibleComponent {
 
   protected final ComponentContainer container;
+  private String name;
 
   private int percentWidthHolder = LENGTH_UNKNOWN;
   private int percentHeightHolder = LENGTH_UNKNOWN;
@@ -326,5 +327,20 @@ public abstract class AndroidViewComponent extends VisibleComponent {
   @Override
   public HandlesEventDispatching getDispatchDelegate() {
     return container.$form();
+  }
+
+  @Override
+  public void setComponentName(final String componentName) {
+    this.name = componentName;
+  }
+
+  /**
+   * Gets the name of the %type%.
+   *
+   * @return the name of the component
+   */
+  @SimpleProperty
+  public String Name() {
+    return name;
   }
 }

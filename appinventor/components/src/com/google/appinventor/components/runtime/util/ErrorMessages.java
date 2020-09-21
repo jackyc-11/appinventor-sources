@@ -123,6 +123,7 @@ public final class ErrorMessages {
   public static final int ERROR_ACTIONBAR_NOT_SUPPORTED = 907;
   public static final int ERROR_PERMISSION_DENIED = 908;
   public static final int ERROR_UNCAUGHT_EXCEPTION_IN_THREAD = 909;
+  public static final int ERROR_UNKNOWN_COMPONENT = 910;
   // Canvas errors
   public static final int ERROR_CANVAS_BITMAP_ERROR = 1001;
   public static final int ERROR_CANVAS_WIDTH_ERROR = 1002;
@@ -530,6 +531,8 @@ public final class ErrorMessages {
         "The permission %s has been denied. Please enable it in the Settings app.");
     errorMessages.put(ERROR_UNCAUGHT_EXCEPTION_IN_THREAD,
         "Uncaught exception on %s thread: %s");
+    errorMessages.put(ERROR_UNKNOWN_COMPONENT,
+        "Unable to find a component named \"%s\".");
     // Canvas errors
     errorMessages.put(ERROR_CANVAS_BITMAP_ERROR, "Error getting Canvas contents to save");
     errorMessages.put(ERROR_CANVAS_WIDTH_ERROR, "Canvas width cannot be set to non-positive number");

@@ -7,6 +7,7 @@
 package com.google.appinventor.components.runtime;
 
 import com.google.appinventor.components.annotations.SimpleObject;
+import com.google.appinventor.components.annotations.SimpleProperty;
 
 /**
  * Base class for all non-visible components.
@@ -38,5 +39,15 @@ public abstract class AndroidNonvisibleComponent implements Component {
   @Override
   public void setComponentName(final String componentName) {
     this.componentName = componentName;
+  }
+
+  /**
+   * Gets the name of the %type%.
+   *
+   * @return the name of the component
+   */
+  @SimpleProperty
+  public String Name() {
+    return componentName;
   }
 }
