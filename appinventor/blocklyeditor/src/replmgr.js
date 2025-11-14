@@ -1037,6 +1037,44 @@ Blockly.ReplMgr.acceptableVersion = function(version) {
     return false;
 };
 
+/**
+ * Formats and displays a stack trace in the browser console.
+ * Mimics the format of browser JavaScript stack traces.
+ */
+Blockly.ReplMgr.formatStackTrace = function(stacktrace) {
+    for (var i = 0; i < stacktrace.length; i++) {
+        var frame = stacktrace[i];
+        if (frame.blockIds && frame.blockIds.length > 0) {
+            for (var j = 0; j < frame.blockIds.length; j++) {
+                var blockId = frame.blockIds[j];
+                var block = Blockly.common.getMainWorkspace().getBlockById(blockId);
+                var blockInfo = blockId;
+                if (block) {
+                    // Try to get a descriptive name for the block
+                    var blockType = block.type || 'unknown';
+                    var blockLabel = '';
+                    // Get a human-readable description of the block
+                    if (block.type === 'component_event') {
+                        blockLabel = 'event ' + (block.eventName || 'unknown');
+                    } else if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_defreturn') {
+                        blockLabel = 'procedure ' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown');
+                    } else if (block.type === 'procedures_callnoreturn' || block.type === 'procedures_callreturn') {
+                        blockLabel = 'call ' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown');
+                    } else {
+                        blockLabel = blockType;
+                    }
+                    blockInfo = blockLabel + ' (block ID: ' + blockId + ')';
+                }
+                console.error('    at ' + blockInfo);
+            }
+        }
+        // Display variables if available
+        if (frame.vars && Object.keys(frame.vars).length > 0) {
+            console.error('      Variables: ' + JSON.stringify(frame.vars));
+        }
+    }
+};
+
 Blockly.ReplMgr.processRetvals = function(responses) {
     var rs = top.ReplState;
     var block;
@@ -1149,6 +1187,20 @@ Blockly.ReplMgr.processRetvals = function(responses) {
             break;
         case "error":
             console.log("processRetVals: Error value = " + r.value);
+            // Display stack trace if available
+            if (r.stacktrace && r.stacktrace.length > 0) {
+                console.error("Runtime Error: " + r.value);
+                console.error("Stack trace:");
+                context.formatStackTrace(r.stacktrace);
+                // Highlight the error block (first frame, first block ID)
+                if (r.stacktrace[0] && r.stacktrace[0].blockIds && r.stacktrace[0].blockIds.length > 0) {
+                    var errorBlockId = r.stacktrace[0].blockIds[0];
+                    var errorBlock = Blockly.common.getMainWorkspace().getBlockById(errorBlockId);
+                    if (errorBlock) {
+                        errorBlock.replError = "Runtime Error: " + r.value;
+                    }
+                }
+            }
             runtimeerr(escapeHTML(r.value) + Blockly.Msg.REPL_NO_ERROR_FIVE_SECONDS);
             break;
         case "log":

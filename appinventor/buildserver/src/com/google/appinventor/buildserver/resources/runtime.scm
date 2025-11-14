@@ -31,6 +31,37 @@
 (define (android-log message)
   (when *debug* (android.util.Log:i "YAIL" message)))
 
+;;; Stack frame tracking for error reporting
+(define-alias StackFrame <com.google.appinventor.components.runtime.util.StackFrame>)
+(define-alias WrappedException <com.google.appinventor.components.runtime.errors.WrappedException>)
+(define-alias RetValManager <com.google.appinventor.components.runtime.util.RetValManager>)
+
+;;; Macro to track block execution for stack traces
+;;; Only active when running in REPL mode
+(define-syntax track-block
+  (syntax-rules ()
+    ((_ block-id code ...)
+     (if *this-is-the-repl*
+      (begin
+        (StackFrame:enter block-id)
+        (try-catch
+         (try-finally
+          (begin code ...)
+          (StackFrame:exit block-id))
+         (exception com.google.appinventor.components.runtime.errors.YailRuntimeError
+          (begin
+            (let ((wrapped (make WrappedException exception)))
+              (RetValManager:sendErrorWithStackTrace wrapped))
+            (StackFrame:clear)
+            (primitive-throw exception)))
+         (exception java.lang.Throwable
+          (begin
+            (let ((wrapped (make WrappedException exception)))
+              (RetValManager:sendErrorWithStackTrace wrapped))
+            (StackFrame:clear)
+            (primitive-throw exception)))))
+      (begin code ...)))))
+
 ;;;; add-component
 (define-constant simple-component-package-name "com.google.appinventor.components.runtime")
 

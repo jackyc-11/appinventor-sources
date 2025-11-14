@@ -676,6 +676,7 @@ AI.Yail.scrub_ = function(block, code, thisOnly) {
       }
     }
   }*/
+
   var nextBlock = block.nextConnection && block.nextConnection.targetBlock();
   var nextCode = thisOnly ? "" : this.blockToCode(nextBlock);
   return commentCode + code + nextCode;

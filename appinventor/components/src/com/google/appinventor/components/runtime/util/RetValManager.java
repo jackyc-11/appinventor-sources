@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.google.appinventor.components.runtime.PhoneStatus;
 import com.google.appinventor.components.runtime.ReplForm;
+import com.google.appinventor.components.runtime.errors.WrappedException;
 
 import java.util.ArrayList;
 
@@ -112,6 +113,44 @@ public class RetValManager {
         semaphore.notifyAll();
       }
     }
+  }
+
+  /**
+   * Sends an error with a captured stack trace to the browser.
+   * This allows the browser to display a formatted stack trace in the console.
+   */
+  public static void sendErrorWithStackTrace(WrappedException e) {
+    synchronized (semaphore) {
+      JSONObject retval = new JSONObject();
+      try {
+        retval.put("status", "OK");
+        retval.put("type", "error");
+        retval.put("value", e.getMessage());
+        // Add the stack trace as a JSON array
+        retval.put("stacktrace", toStackTrace(e));
+      } catch (JSONException ex) {
+        Log.e(LOG_TAG, "Error building retval with stack trace", ex);
+        return;
+      }
+      boolean sendNotify = currentArray.isEmpty();
+      currentArray.add(retval);
+      if (PhoneStatus.getUseWebRTC()) {
+        webRTCsendCurrent();
+      } else if (sendNotify) {
+        semaphore.notifyAll();
+      }
+    }
+  }
+
+  /**
+   * Converts the block stack trace to a JSON array.
+   */
+  private static JSONArray toStackTrace(WrappedException e) throws JSONException {
+    JSONArray trace = new JSONArray();
+    for (StackFrame frame : e.getBlockStackTrace()) {
+      trace.put(frame.toJson());
+    }
+    return trace;
   }
 
   /*
