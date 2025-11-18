@@ -25,6 +25,7 @@ import com.google.appinventor.client.editor.ProjectEditor;
 import com.google.appinventor.client.editor.blocks.BlocklyPanel;
 import com.google.appinventor.client.editor.simple.palette.DropTargetProvider;
 import com.google.appinventor.client.editor.youngandroid.ConsolePanel;
+import com.google.appinventor.client.editor.youngandroid.DebugPanel;
 import com.google.appinventor.client.editor.youngandroid.DesignToolbar;
 import com.google.appinventor.client.editor.youngandroid.TutorialPanel;
 import com.google.appinventor.client.editor.youngandroid.YaFormEditor;
@@ -224,6 +225,7 @@ public class Ode implements EntryPoint {
   @UiField(provided = true) protected FlowPanel overDeckPanel;
   @UiField protected TutorialPanel tutorialPanel;
   @UiField protected ConsolePanel consolePanel;
+  @UiField protected DebugPanel debugPanel;
   private int projectsTabIndex;
   private int designTabIndex;
   private int debuggingTabIndex;
@@ -248,6 +250,7 @@ public class Ode implements EntryPoint {
   private boolean tutorialVisible = false;
 
   private boolean consoleVisible = false;
+  private boolean debugVisible = false;
 
   // Popup that indicates that an asynchronous request is pending. It is visible
   // initially, and will be hidden automatically after the first RPC completes.
@@ -2498,6 +2501,19 @@ public class Ode implements EntryPoint {
     }
   }
 
+  public void setDebugVisible(boolean visible) {
+    debugVisible = visible;
+    if (visible) {
+      debugPanel.setVisible(true);
+      debugPanel.setWidth("300px");
+    } else {
+      debugPanel.setVisible(false);
+    }
+    if (currentFileEditor != null) {
+      currentFileEditor.resize();
+    }
+  }
+
   /**
    * Indicate if the tutorial panel is currently visible.
    * @return true if the tutorial panel is visible.
@@ -2514,6 +2530,10 @@ public class Ode implements EntryPoint {
 
   public boolean isConsoleVisible() {
     return consoleVisible;
+  }
+
+  public boolean isDebugVisible() {
+    return debugVisible;
   }
 
   public void setTutorialURL(String newURL) {

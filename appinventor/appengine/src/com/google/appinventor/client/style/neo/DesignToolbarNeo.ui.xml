@@ -48,8 +48,13 @@
       <ca:SendToGalleryAction/>
     </ai:ToolbarItem>
 
+    <ai:ToolbarItem name="ToggleDebug" icon="bug_report" 
+                    ui:field="toggleDebugItem" align="right" styleName="ode-ProjectListButton bleft primary">
+      <ya:ToggleDebugAction/>
+    </ai:ToolbarItem>
+
     <ai:ToolbarItem name="ToggleConsole" icon="view_sidebar" 
-                    ui:field="toggleConsoleItem" align="right" styleName="ode-ProjectListButton bleft primary">
+                    ui:field="toggleConsoleItem" align="right" styleName="ode-ProjectListButton bcenter primary">
       <ya:ToggleConsoleAction/>
     </ai:ToolbarItem>
 

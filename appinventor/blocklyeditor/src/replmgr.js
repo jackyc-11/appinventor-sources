@@ -1186,6 +1186,36 @@ Blockly.ReplMgr.processRetvals = function(responses) {
             break;
         case "error":
             console.log("processRetVals: Error value = " + r.value);
+            if (r.stacktrace && r.stacktrace.length > 0) {
+                context.formatStackTrace(r.stacktrace);
+                if (typeof top.DebugPanel_setCallStack === 'function') {
+                    top.DebugPanel_setCallStack(r.stacktrace, r.value);
+                }
+                var errorBlockId = null;
+                for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
+                    var frame = r.stacktrace[frameIdx];
+                    if (frame.blockIds && frame.blockIds.length > 0) {
+                        var lastBlockId = frame.blockIds[frame.blockIds.length - 1];
+                        var lastBlock = Blockly.common.getMainWorkspace().getBlockById(lastBlockId);
+                        if (lastBlock && lastBlock.type !== 'component_event') {
+                            errorBlockId = lastBlockId;
+                            break;
+                        }
+                    }
+                }
+                var allBlocks = Blockly.common.getMainWorkspace().getAllBlocks(false);
+                for (var i = 0; i < allBlocks.length; i++) {
+                    if (allBlocks[i].replError) {
+                        allBlocks[i].replError = null;
+                    }
+                }
+                if (errorBlockId) {
+                    var errorBlock = Blockly.common.getMainWorkspace().getBlockById(errorBlockId);
+                    if (errorBlock) {
+                        errorBlock.replError = "Runtime Error: " + r.value;
+                    }
+                }
+            }
             runtimeerr(escapeHTML(r.value) + Blockly.Msg.REPL_NO_ERROR_FIVE_SECONDS);
             break;
         case "log":
