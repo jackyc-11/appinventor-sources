@@ -47,6 +47,7 @@ AI.Yail.component_event = function() {
     body = AI.Yail.YAIL_NULL;
   }
 
+  var wrappedBody = '(track-block "' + this.id + '" ' + body + ')'
 
   var code = preamble
     + AI.Yail.YAIL_OPEN_COMBINATION
@@ -62,7 +63,7 @@ AI.Yail.component_event = function() {
     + AI.Yail.YAIL_CLOSE_COMBINATION
     + AI.Yail.YAIL_SET_THIS_FORM
     + AI.Yail.YAIL_SPACER
-    + body
+    + wrappedBody
     + AI.Yail.YAIL_CLOSE_COMBINATION;
   return code;
 }

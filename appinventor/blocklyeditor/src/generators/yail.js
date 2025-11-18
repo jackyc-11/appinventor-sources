@@ -677,6 +677,13 @@ AI.Yail.scrub_ = function(block, code, thisOnly) {
       }
     }
   }*/
+
+  if (typeof code === 'string' && code.trim() !== '') {
+    if (!block.outputConnection && block.type !== 'component_event') {
+      code = '(track-block "' + block.id + '" ' + code + ')';
+    }
+  }
+
   var nextBlock = block.nextConnection && block.nextConnection.targetBlock();
   var nextCode = thisOnly ? "" : this.blockToCode(nextBlock);
   return commentCode + code + nextCode;

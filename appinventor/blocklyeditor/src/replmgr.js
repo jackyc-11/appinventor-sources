@@ -1037,6 +1037,43 @@ Blockly.ReplMgr.acceptableVersion = function(version) {
     return false;
 };
 
+Blockly.ReplMgr.formatStackTrace = function(stacktrace) {
+    if (!stacktrace || stacktrace.length === 0) {
+        return;
+    }
+
+    for (var i = 0; i < stacktrace.length; i++) {
+        var frame = stacktrace[i];
+        if (frame.blockIds && frame.blockIds.length > 0) {
+            for (var j = frame.blockIds.length - 1; j >= 0; j--) {
+                var blockId = frame.blockIds[j];
+                var block = Blockly.common.getMainWorkspace().getBlockById(blockId);
+                var blockInfo = 'Block ID: ' + blockId;
+
+                if (block) {
+                    var blockType = block.type || 'unknown';
+                    var blockLabel = '';
+
+                    if (block.type === 'component_event') {
+                        var componentName = block.getFieldValue && block.getFieldValue('COMPONENT_SELECTOR');
+                        blockLabel = 'event ' + (componentName || 'unknown') + '.' + (block.eventName || 'unknown');
+                    } else if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_defreturn') {
+                        blockLabel = 'procedure "' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown') + '"';
+                    } else if (block.type === 'procedures_callnoreturn' || block.type === 'procedures_callreturn') {
+                        blockLabel = 'call "' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown') + '"';
+                    } else if (block.type.indexOf('component_') === 0) {
+                        var compName = block.instanceName || block.typeName || 'unknown';
+                        blockLabel = blockType.replace('component_', '') + ' ' + compName;
+                    } else {
+                        blockLabel = blockType.replace(/_/g, ' ');
+                    }
+                    blockInfo = blockLabel + ' [' + blockId + ']';
+                }
+            }
+        }
+    }
+};
+
 Blockly.ReplMgr.processRetvals = function(responses) {
     var rs = top.ReplState;
     var block;
