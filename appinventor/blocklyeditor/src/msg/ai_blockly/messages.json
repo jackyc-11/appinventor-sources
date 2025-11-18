@@ -38,6 +38,8 @@
 	"Blockly.Msg.SORT_W": "Sort Blocks by Width",
 	"Blockly.Msg.SORT_H": "Sort Blocks by Height",
 	"Blockly.Msg.SORT_C": "Sort Blocks by Category",
+	"Blockly.Msg.ADD_BREAKPOINT": "Add Breakpoint",
+	"Blockly.Msg.REMOVE_BREAKPOINT": "Remove Breakpoint",
 	"Blockly.Msg.COPY_TO_BACKPACK": "Add to Backpack",
 	"Blockly.Msg.COPY_X_TO_BACKPACK": "Add %1 Blocks to Backpack",
 	"Blockly.Msg.COPY_ALLBLOCKS": "Copy All Blocks to Backpack",
