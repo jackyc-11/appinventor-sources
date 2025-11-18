@@ -640,6 +640,19 @@ Blockly.Blocks['controls_openAnotherScreen'] = {
   typeblock: [{translatedName: Blockly.Msg.LANG_CONTROLS_OPEN_ANOTHER_SCREEN_TITLE}]
 };
 
+Blockly.Blocks['controls_wait'] = {
+  category: 'Control',
+  helpUrl: '',
+  init: function() {
+    this.setColour(Blockly.CONTROL_CATEGORY_HUE);
+    this.appendValueInput('VALUE')
+      .setCheck(AI.BlockUtils.YailTypeToBlocklyType('number', AI.BlockUtils.INPUT))
+      .appendField('wait for milliseconds');
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+  }
+};
+
 Blockly.Blocks['controls_openAnotherScreenWithStartValue'] = {
   // Open another screen with start value
   category: 'Control',
