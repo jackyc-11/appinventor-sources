@@ -634,6 +634,8 @@ body {
   padding-bottom: 4px;
   padding-left: 15px;
   padding-right: 20px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .ya-Toolbar-minimal .ode-ProjectListButton {
@@ -1902,16 +1904,21 @@ input[type="checkbox"]:focus {
   text-align: unset;
   justify-content: flex-start;
   display: flex;
+  min-width: 220px;
 }
 
 .ya-Toolbar .right {
   text-align: unset;
   justify-content: flex-end;
   display: flex;
+  flex-shrink: 0;
 }
 
 .ya-Toolbar .center {
   display: flex;
+  text-align: center;
+  min-width: fit-content;
+  justify-content: center;
 }
 
 .ya-Toolbar > div > div {
@@ -1990,10 +1997,15 @@ display: contents;
   border-top: 1px solid gray-400;
   height: 50vh;
   /*border-radius: 4px;*/
+  display: flex;
+  flex-flow: row;
+  box-sizing: border-box;
 }
 
 .ViewerBox {
   display: flex;
+  flex-grow: 1;
+  min-width: 368px;
 }
 
 .ode-Designer-LeftColumn {

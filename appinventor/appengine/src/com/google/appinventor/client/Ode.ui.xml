@@ -34,6 +34,7 @@
             </g:FlowPanel>
             <box:PropertiesBox ui:field="propertiesBox" width="222px" />
             <ed:ConsolePanel ui:field="consolePanel" height="100%" visible="false" />
+            <ed:DebugPanel ui:field="debugPanel" height="100%" visible="false" />
           </g:FlowPanel>
         </g:FlowPanel>
         <g:FlowPanel width="100%">

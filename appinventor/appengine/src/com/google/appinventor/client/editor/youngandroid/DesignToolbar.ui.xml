@@ -39,6 +39,9 @@
        ui:field="sendToGalleryItem" align="center">
       <actions:SendToGalleryAction />
     </ai:ToolbarItem>
+    <ai:ToolbarItem name="Debug Toggle" caption="{messages.toggleDebugButton}" ui:field="toggleDebugItem" align="right">
+      <ya:ToggleDebugAction />
+    </ai:ToolbarItem>
     <ai:ToolbarItem name ="Console Toggle" caption="{messages.toggleConsoleButton}" ui:field="toggleConsoleItem" align="right">
       <ya:ToggleConsoleAction />
     </ai:ToolbarItem>

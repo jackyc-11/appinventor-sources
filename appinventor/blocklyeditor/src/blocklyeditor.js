@@ -278,6 +278,25 @@ AI.Blockly.ContextMenuItems.registerGenerateYailOption = function() {
   Blockly.ContextMenuRegistry.registry.register(generateYailItem);
 }
 
+AI.Blockly.ContextMenuItems.registerAddBreakpointOption = function() {
+  const addBreakpointItem = {
+    displayText: Blockly.Msg['ADD_BREAKPOINT'],
+    callback: function (scope) {
+      // No functionality for now
+    },
+    preconditionFn: function (scope) {
+      if (scope.block.workspace.isFlyout) {
+        return 'hidden';
+      }
+      return 'enabled';
+    },
+    weight: 101,  // Show right before "Add to Backpack"
+    id: 'appinventor_add_breakpoint',
+    scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+  };
+  Blockly.ContextMenuRegistry.registry.register(addBreakpointItem);
+}
+
 AI.Blockly.ContextMenuItems.registerAddToBackpackOption = function() {
   const addToBackpackItem = {
     displayText: function(scope) {
@@ -949,6 +968,7 @@ AI.Blockly.ContextMenuItems.registerAll = function() {
   AI.Blockly.ContextMenuItems.registerHelpOption();
   AI.Blockly.ContextMenuItems.registerClearUnusedBlocksOption();
   // Block menu options
+  AI.Blockly.ContextMenuItems.registerAddBreakpointOption();
   // AI.Blockly.ContextMenuItems.registerAddToBackpackOption();
   AI.Blockly.ContextMenuItems.registerGenerateYailOption();
   AI.Blockly.ContextMenuItems.registerExportBlockOption();

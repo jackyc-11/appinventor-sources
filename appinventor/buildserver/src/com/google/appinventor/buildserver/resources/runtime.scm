@@ -45,23 +45,56 @@
       (begin
         (StackFrame:enter block-id)
         (try-catch
-         (try-finally
-          (begin code ...)
-          (StackFrame:exit block-id))
+         (let ((result (begin code ...)))
+           (StackFrame:exit block-id)
+           result)  ;; Return the actual result, not the StackFrame!
+         (exception com.google.appinventor.components.runtime.errors.YailRuntimeError
+          (begin
+            ;; IMPORTANT: Capture stack BEFORE clearing or exiting!
+            (let ((wrapped (make WrappedException exception)))
+              (StackFrame:clear)
+              (RetValManager:sendErrorWithStackTrace wrapped)
+              (primitive-throw exception))))
+         (exception java.lang.Throwable
+          (begin
+            ;; IMPORTANT: Capture stack BEFORE clearing or exiting!
+            (let ((wrapped (make WrappedException exception)))
+              (StackFrame:clear)
+              (RetValManager:sendErrorWithStackTrace wrapped)
+              (primitive-throw exception))))))
+      (begin code ...)))))
+
+
+;;; Macro to track procedure execution with parameter capture
+;;; Only active when running in REPL mode
+(define-syntax track-procedure
+  (syntax-rules ()
+    ((_ block-id param-names param-values code ...)
+     (if *this-is-the-repl*
+      (begin
+        (StackFrame:enter block-id)
+        ;; Store each parameter value in the stack frame
+        (let loop ((names param-names) (vals param-values))
+          (when (not (null? names))
+            (StackFrame:put (car names) (car vals))
+            (loop (cdr names) (cdr vals))))
+        (try-catch
+         (let ((result (begin code ...)))
+           (StackFrame:exit block-id)
+           result)
          (exception com.google.appinventor.components.runtime.errors.YailRuntimeError
           (begin
             (let ((wrapped (make WrappedException exception)))
-              (RetValManager:sendErrorWithStackTrace wrapped))
-            (StackFrame:clear)
-            (primitive-throw exception)))
+              (StackFrame:clear)
+              (RetValManager:sendErrorWithStackTrace wrapped)
+              (primitive-throw exception))))
          (exception java.lang.Throwable
           (begin
             (let ((wrapped (make WrappedException exception)))
-              (RetValManager:sendErrorWithStackTrace wrapped))
-            (StackFrame:clear)
-            (primitive-throw exception)))))
+              (StackFrame:clear)
+              (RetValManager:sendErrorWithStackTrace wrapped)
+              (primitive-throw exception))))))
       (begin code ...)))))
-
 ;;;; add-component
 (define-constant simple-component-package-name "com.google.appinventor.components.runtime")
 

@@ -25,6 +25,7 @@ import com.google.appinventor.client.editor.ProjectEditor;
 import com.google.appinventor.client.editor.blocks.BlocklyPanel;
 import com.google.appinventor.client.editor.simple.palette.DropTargetProvider;
 import com.google.appinventor.client.editor.youngandroid.ConsolePanel;
+import com.google.appinventor.client.editor.youngandroid.DebugPanel;
 import com.google.appinventor.client.editor.youngandroid.DesignToolbar;
 import com.google.appinventor.client.editor.youngandroid.TutorialPanel;
 import com.google.appinventor.client.editor.youngandroid.YaFormEditor;
@@ -224,6 +225,7 @@ public class Ode implements EntryPoint {
   @UiField(provided = true) protected FlowPanel overDeckPanel;
   @UiField protected TutorialPanel tutorialPanel;
   @UiField protected ConsolePanel consolePanel;
+  @UiField protected DebugPanel debugPanel;
   private int projectsTabIndex;
   private int designTabIndex;
   private int debuggingTabIndex;
@@ -248,6 +250,8 @@ public class Ode implements EntryPoint {
   private boolean tutorialVisible = false;
 
   private boolean consoleVisible = false;
+
+  private boolean debugVisible = false;
 
   // Popup that indicates that an asynchronous request is pending. It is visible
   // initially, and will be hidden automatically after the first RPC completes.
@@ -2487,10 +2491,14 @@ public class Ode implements EntryPoint {
 
   public void setConsoleVisible(boolean visible) {
     consoleVisible = visible;
+    // Ensure workColumns uses flex layout
+    workColumns.getElement().getStyle().setProperty("display", "flex");
     if (visible) {
       consolePanel.setVisible(true);
-      consolePanel.setWidth("300px");
-    } else {;
+      consolePanel.getElement().getStyle().setProperty("flex", "0 0 300px");
+      consolePanel.getElement().getStyle().setProperty("minWidth", "200px");
+      consolePanel.getElement().getStyle().setProperty("maxWidth", "300px");
+    } else {
       consolePanel.setVisible(false);
     }
     if (currentFileEditor != null) {
@@ -2514,6 +2522,27 @@ public class Ode implements EntryPoint {
 
   public boolean isConsoleVisible() {
     return consoleVisible;
+  }
+
+  public void setDebugVisible(boolean visible) {
+    debugVisible = visible;
+    // Ensure workColumns uses flex layout
+    workColumns.getElement().getStyle().setProperty("display", "flex");
+    if (visible) {
+      debugPanel.setVisible(true);
+      debugPanel.getElement().getStyle().setProperty("flex", "0 0 300px");
+      debugPanel.getElement().getStyle().setProperty("minWidth", "200px");
+      debugPanel.getElement().getStyle().setProperty("maxWidth", "300px");
+    } else {
+      debugPanel.setVisible(false);
+    }
+    if (currentFileEditor != null) {
+      currentFileEditor.resize();
+    }
+  }
+
+  public boolean isDebugVisible() {
+    return debugVisible;
   }
 
   public void setTutorialURL(String newURL) {

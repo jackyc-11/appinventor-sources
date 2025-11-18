@@ -91,6 +91,18 @@ public class StackFrame implements Cloneable {
   }
 
   /**
+   * Sets a variable binding in this frame using a string name.
+   * Used for storing procedure parameters in the call stack.
+   */
+  public static void put(String name, Object value) {
+    Deque<StackFrame> myFrames = frames.get();
+    if (!myFrames.isEmpty()) {
+      Symbol symbol = Symbol.valueOf(name);
+      myFrames.getFirst().set(symbol, value);
+    }
+  }
+
+  /**
    * Converts this frame to a JSON object for transmission to the browser.
    */
   public JSONObject toJson() throws JSONException {
@@ -145,9 +157,10 @@ public class StackFrame implements Cloneable {
       // If no frame exists, create one
       myFrames.push(new StackFrame(blockId));
     } else {
-      myFrames.getLast().push(blockId);
+      // Use getFirst() to get the most recently pushed frame (at the head of the deque)
+      myFrames.getFirst().push(blockId);
     }
-    return myFrames.getLast();
+    return myFrames.getFirst();
   }
 
   /**
@@ -161,11 +174,11 @@ public class StackFrame implements Cloneable {
       Log.w(LOG_TAG, "Attempted to exit block " + blockId + " but no frames exist");
       return null;
     }
-    String topBlockId = myFrames.getLast().pop();
+    String topBlockId = myFrames.getFirst().pop();
     if (topBlockId != null && !topBlockId.equals(blockId)) {
       Log.w(LOG_TAG, "Unexpected block id " + topBlockId + "; wanted to see: " + blockId);
     }
-    return myFrames.isEmpty() ? null : myFrames.getLast();
+    return myFrames.isEmpty() ? null : myFrames.getFirst();
   }
 
   /**

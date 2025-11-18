@@ -24,29 +24,85 @@ goog.provide('AI.Yail.procedures');
 
 AI.Yail.YAIL_PROC_TAG = 'p$'; // See notes on this in generators/yail/variables.js
 
-// Generator code for procedure call with return
+// Generator code for procedure definition with return
 // [lyn, 01/15/2013] Edited to remove STACK (no longer necessary with DO-THEN-RETURN)
 AI.Yail['procedures_defreturn'] = function() {
   var argPrefix = AI.Yail.YAIL_LOCAL_VAR_TAG
                   + (Blockly.usePrefixInYail && this.arguments_.length != 0 ? "param_" : "");
-  var args = this.arguments_.map(function (arg) {return argPrefix + arg;}).join(' ');
   var procName = AI.Yail.YAIL_PROC_TAG + this.getFieldValue('NAME');
   var returnVal = AI.Yail.valueToCode(this, 'RETURN', AI.Yail.ORDER_NONE) || AI.Yail.YAIL_FALSE;
+  
+  // Build parameter tracking for call stack - only if we're in REPL mode
+  var wrappedReturnVal;
+  if (this.arguments_.length > 0) {
+    // Build the parameter capture code manually
+    var paramSetup = '';
+    for (var i = 0; i < this.arguments_.length; i++) {
+      var paramName = this.arguments_[i];
+      var paramVar = argPrefix + paramName;
+      paramSetup += ' (StackFrame:put "' + paramName + '" ' + paramVar + ')';
+    }
+    
+    // Manually inline the tracking with exception handling
+    wrappedReturnVal = '(if *this-is-the-repl* ' +
+                       '(begin (StackFrame:enter "' + this.id + '")' +
+                       paramSetup +
+                       ' (try-catch' +
+                       ' (let ((result ' + returnVal + ')) (StackFrame:exit "' + this.id + '") result)' +
+                       ' (exception com.google.appinventor.components.runtime.errors.YailRuntimeError' +
+                       ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))' +
+                       ' (exception java.lang.Throwable' +
+                       ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
+                       ' ' + returnVal + ')';
+  } else {
+    // No parameters, use regular track-block
+    wrappedReturnVal = '(track-block "' + this.id + '" ' + returnVal + ')';
+  }
+  
+  var args = this.arguments_.map(function (arg) {return argPrefix + arg;}).join(' ');
   var code = AI.Yail.YAIL_DEFINE + AI.Yail.YAIL_OPEN_COMBINATION + procName
-      + AI.Yail.YAIL_SPACER + args + AI.Yail.YAIL_CLOSE_COMBINATION 
-      + AI.Yail.YAIL_SPACER + returnVal + AI.Yail.YAIL_CLOSE_COMBINATION;
+      + AI.Yail.YAIL_SPACER + args + AI.Yail.YAIL_CLOSE_COMBINATION
+      + AI.Yail.YAIL_SPACER + wrappedReturnVal + AI.Yail.YAIL_CLOSE_COMBINATION;
   return code;
 };
 
-// Generator code for procedure call with return
+// Generator code for procedure definition without return
 AI.Yail['procedures_defnoreturn'] = function() {
   var argPrefix = AI.Yail.YAIL_LOCAL_VAR_TAG
                   + (Blockly.usePrefixInYail && this.arguments_.length != 0 ? "param_" : "");
-  var args = this.arguments_.map(function (arg) {return argPrefix + arg;}).join(' ');
   var procName = AI.Yail.YAIL_PROC_TAG + this.getFieldValue('NAME');
   var body = AI.Yail.statementToCode(this, 'STACK', AI.Yail.ORDER_NONE)  || AI.Yail.YAIL_FALSE;
+  
+  // Build parameter tracking for call stack - only if we're in REPL mode
+  var wrappedBody;
+  if (this.arguments_.length > 0) {
+    // Build the parameter capture code manually
+    var paramSetup = '';
+    for (var i = 0; i < this.arguments_.length; i++) {
+      var paramName = this.arguments_[i];
+      var paramVar = argPrefix + paramName;
+      paramSetup += ' (StackFrame:put "' + paramName + '" ' + paramVar + ')';
+    }
+    
+    // Manually inline the tracking with exception handling
+    wrappedBody = '(if *this-is-the-repl* ' +
+                  '(begin (StackFrame:enter "' + this.id + '")' +
+                  paramSetup +
+                  ' (try-catch' +
+                  ' (let ((result ' + body + ')) (StackFrame:exit "' + this.id + '") result)' +
+                  ' (exception com.google.appinventor.components.runtime.errors.YailRuntimeError' +
+                  ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))' +
+                  ' (exception java.lang.Throwable' +
+                  ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
+                  ' ' + body + ')';
+  } else {
+    // No parameters, use regular track-block
+    wrappedBody = '(track-block "' + this.id + '" ' + body + ')';
+  }
+  
+  var args = this.arguments_.map(function (arg) {return argPrefix + arg;}).join(' ');
   var code = AI.Yail.YAIL_DEFINE + AI.Yail.YAIL_OPEN_COMBINATION + procName
-      + AI.Yail.YAIL_SPACER + args + AI.Yail.YAIL_CLOSE_COMBINATION + body
+      + AI.Yail.YAIL_SPACER + args + AI.Yail.YAIL_CLOSE_COMBINATION + wrappedBody
       + AI.Yail.YAIL_CLOSE_COMBINATION;
   return code;
 };
@@ -60,7 +116,7 @@ AI.Yail['procedures_do_then_return'] = function() {
   return AI.Yail.controls_do_then_return.call(this);
 }
 
-// Generator code for procedure call with return
+// Generator code for procedure call without return - NO TRACKING (tracked in definition)
 AI.Yail['procedures_callnoreturn'] = function() {
   var procName = AI.Yail.YAIL_PROC_TAG + this.getFieldValue('PROCNAME');
   var argCode = [];
@@ -73,7 +129,7 @@ AI.Yail['procedures_callnoreturn'] = function() {
   return code;
 };
 
-// Generator code for procedure call with return
+// Generator code for procedure call with return - NO TRACKING (tracked in definition)
 AI.Yail['procedures_callreturn'] = function() {
   var procName = AI.Yail.YAIL_PROC_TAG + this.getFieldValue('PROCNAME');
   var argCode = [];

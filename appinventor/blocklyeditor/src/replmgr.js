@@ -1042,32 +1042,49 @@ Blockly.ReplMgr.acceptableVersion = function(version) {
  * Mimics the format of browser JavaScript stack traces.
  */
 Blockly.ReplMgr.formatStackTrace = function(stacktrace) {
+    if (!stacktrace || stacktrace.length === 0) {
+        console.error('    (empty stack trace)');
+        return;
+    }
+
     for (var i = 0; i < stacktrace.length; i++) {
         var frame = stacktrace[i];
         if (frame.blockIds && frame.blockIds.length > 0) {
-            for (var j = 0; j < frame.blockIds.length; j++) {
+            // Display blocks in reverse order (most recent first)
+            for (var j = frame.blockIds.length - 1; j >= 0; j--) {
                 var blockId = frame.blockIds[j];
                 var block = Blockly.common.getMainWorkspace().getBlockById(blockId);
-                var blockInfo = blockId;
+                var blockInfo = 'Block ID: ' + blockId;
+
                 if (block) {
                     // Try to get a descriptive name for the block
                     var blockType = block.type || 'unknown';
                     var blockLabel = '';
+
                     // Get a human-readable description of the block
                     if (block.type === 'component_event') {
-                        blockLabel = 'event ' + (block.eventName || 'unknown');
+                        var componentName = block.getFieldValue && block.getFieldValue('COMPONENT_SELECTOR');
+                        blockLabel = 'event ' + (componentName || 'unknown') + '.' + (block.eventName || 'unknown');
                     } else if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_defreturn') {
-                        blockLabel = 'procedure ' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown');
+                        blockLabel = 'procedure "' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown') + '"';
                     } else if (block.type === 'procedures_callnoreturn' || block.type === 'procedures_callreturn') {
-                        blockLabel = 'call ' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown');
+                        blockLabel = 'call "' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown') + '"';
+                    } else if (block.type.indexOf('component_') === 0) {
+                        // Component block - try to get component name
+                        var compName = block.instanceName || block.typeName || 'unknown';
+                        blockLabel = blockType.replace('component_', '') + ' ' + compName;
                     } else {
-                        blockLabel = blockType;
+                        // Use a human-friendly version of the block type
+                        blockLabel = blockType.replace(/_/g, ' ');
                     }
-                    blockInfo = blockLabel + ' (block ID: ' + blockId + ')';
+
+                    blockInfo = blockLabel + ' [' + blockId + ']';
                 }
+
                 console.error('    at ' + blockInfo);
             }
         }
+
         // Display variables if available
         if (frame.vars && Object.keys(frame.vars).length > 0) {
             console.error('      Variables: ' + JSON.stringify(frame.vars));
@@ -1192,15 +1209,49 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                 console.error("Runtime Error: " + r.value);
                 console.error("Stack trace:");
                 context.formatStackTrace(r.stacktrace);
-                // Highlight the error block (first frame, first block ID)
-                if (r.stacktrace[0] && r.stacktrace[0].blockIds && r.stacktrace[0].blockIds.length > 0) {
-                    var errorBlockId = r.stacktrace[0].blockIds[0];
+
+                // Display stack trace in the Call Stack panel
+                // Only update if we have a valid stack trace
+                if (typeof top.DebugPanel_setCallStack === 'function') {
+                    top.DebugPanel_setCallStack(r.stacktrace, r.value);
+                }
+
+                // Highlight the error block (most recently executed block)
+                // Find the deepest non-event block in the stack
+                var errorBlockId = null;
+                for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
+                    var frame = r.stacktrace[frameIdx];
+                    if (frame.blockIds && frame.blockIds.length > 0) {
+                        // Get the most recent block (last in array)
+                        var lastBlockId = frame.blockIds[frame.blockIds.length - 1];
+                        var lastBlock = Blockly.common.getMainWorkspace().getBlockById(lastBlockId);
+                        // Use the first non-event block we find
+                        if (lastBlock && lastBlock.type !== 'component_event') {
+                            errorBlockId = lastBlockId;
+                            break;
+                        }
+                    }
+                }
+
+                // Clear previous errors from all blocks first
+                var allBlocks = Blockly.common.getMainWorkspace().getAllBlocks(false);
+                for (var i = 0; i < allBlocks.length; i++) {
+                    if (allBlocks[i].replError) {
+                        allBlocks[i].replError = null;
+                    }
+                }
+
+                // Set error on the identified block
+                if (errorBlockId) {
                     var errorBlock = Blockly.common.getMainWorkspace().getBlockById(errorBlockId);
                     if (errorBlock) {
                         errorBlock.replError = "Runtime Error: " + r.value;
                     }
                 }
             }
+            // NOTE: We don't clear the call stack for errors without stack traces
+            // because multiple error messages may come through, and we want to keep
+            // displaying the most recent valid stack trace
             runtimeerr(escapeHTML(r.value) + Blockly.Msg.REPL_NO_ERROR_FIVE_SECONDS);
             break;
         case "log":

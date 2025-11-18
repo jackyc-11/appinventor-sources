@@ -677,6 +677,16 @@ AI.Yail.scrub_ = function(block, code, thisOnly) {
     }
   }*/
 
+  // Wrap statement blocks with stack tracking for error reporting
+  // This builds up a proper call stack showing which blocks were executing
+  if (code && typeof code === 'string' && code.trim() !== '') {
+    // Only wrap statement blocks (no output connection)
+    // Skip event handlers as they're wrapped separately in componentblock.js
+    if (!block.outputConnection && block.type !== 'component_event') {
+      code = '(track-block "' + block.id + '" ' + code + ')';
+    }
+  }
+
   var nextBlock = block.nextConnection && block.nextConnection.targetBlock();
   var nextCode = thisOnly ? "" : this.blockToCode(nextBlock);
   return commentCode + code + nextCode;
