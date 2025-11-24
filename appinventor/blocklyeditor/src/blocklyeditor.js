@@ -280,9 +280,19 @@ AI.Blockly.ContextMenuItems.registerGenerateYailOption = function() {
 
 AI.Blockly.ContextMenuItems.registerAddBreakpointOption = function() {
   const addBreakpointItem = {
-    displayText: Blockly.Msg['ADD_BREAKPOINT'],
+    displayText: function(scope) {
+      const hasBreakpoint = scope.block.getIcon(AI.BreakpointIcon.TYPE);
+      return hasBreakpoint ? Blockly.Msg['REMOVE_BREAKPOINT'] : Blockly.Msg['ADD_BREAKPOINT'];
+    },
     callback: function (scope) {
-      // No functionality for now
+      const block = scope.block;
+      const breakpointIcon = block.getIcon(AI.BreakpointIcon.TYPE);
+      if (breakpointIcon) {
+        block.removeIcon(AI.BreakpointIcon.TYPE);
+      } else {
+        const icon = new AI.BreakpointIcon(block);
+        block.addIcon(icon);
+      }
     },
     preconditionFn: function (scope) {
       if (scope.block.workspace.isFlyout) {

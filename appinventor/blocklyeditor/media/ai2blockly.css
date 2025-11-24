@@ -24,6 +24,10 @@
   fill: none;
 }
 
+.blocklyIconGroup .blocklyBreakpointIcon {
+  fill: #ff0000;
+}
+
 .blocklybackpackFlyoutBackground {
   fill: #ddd;
   fill-opacity: .8;

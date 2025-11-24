@@ -16,6 +16,7 @@ goog.provide('AI.Blockly.BlockSvg');
 // App Inventor extensions to Blockly
 goog.require('AI.Blockly.Block');
 goog.require('AI.Blockly.FieldFlydown');
+goog.require('AI.BreakpointIcon');
 goog.require('AI.ErrorIcon');
 
 /**
