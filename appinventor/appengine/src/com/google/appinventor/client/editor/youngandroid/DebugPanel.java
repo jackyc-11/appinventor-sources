@@ -155,11 +155,11 @@ public class DebugPanel extends VerticalPanel {
 
       var allVars = {};
 
-      for (var i = 0; i < stackTrace.length; i++) {
+      for (var i = stackTrace.length - 1; i >= 0; i--) {
         var frame = stackTrace[i];
         if (frame.blockIds && frame.blockIds.length > 0) {
 
-          for (var j = frame.blockIds.length - 1; j >= 0; j--) {
+          for (var j = 0; j < frame.blockIds.length; j++) {
             var blockId = frame.blockIds[j];
             var entry = doc.createElement('div');
             entry.style.padding = '5px 10px';
@@ -213,15 +213,17 @@ public class DebugPanel extends VerticalPanel {
               try {
                 var ws = top.Blockly.common.getMainWorkspace();
                 if (ws) {
-                  var blk = ws.getBlockById(bid);
-                  if (blk) {
-                    blk.select();
-
-                    ws.centerOnBlock(bid);
+                  var warningHandler = ws.getWarningHandler();
+                  if (warningHandler) {
+                    if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+                      warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+                    }
+                    ws.currentDebugCollapseStack = warningHandler.highlightBlock_(bid);
+                    ws.currentDebugBlockId = bid;
                   }
                 }
               } catch (e) {
-                console.error('Error selecting block:', e);
+                console.error('Error highlighting block:', e);
               }
             };
             entry.onmouseover = function() {
@@ -256,54 +258,21 @@ public class DebugPanel extends VerticalPanel {
       emptyMsg.innerText = 'No active call stack';
       container.appendChild(emptyMsg);
 
+      try {
+        var ws = top.Blockly.common.getMainWorkspace();
+        if (ws && ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+          var warningHandler = ws.getWarningHandler();
+          if (warningHandler) {
+            warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+            ws.currentDebugBlockId = null;
+            ws.currentDebugCollapseStack = null;
+          }
+        }
+      } catch (e) {
+        console.error('Error clearing highlight:', e);
+      }
+
       top.DebugPanel_setVariables({});
-    };
-
-    top.DebugPanel_setBreakpoints = function(breakpoints) {
-      var container = top.document.getElementById('aiBreakpointsPanel');
-      if (!container) return;
-      var doc = container.ownerDocument || top.document;
-      container.innerHTML = '';
-      if (!breakpoints || breakpoints.length === 0) {
-        var emptyMsg = doc.createElement('div');
-        emptyMsg.style.padding = '10px';
-        emptyMsg.innerText = '(No breakpoints set)';
-        container.appendChild(emptyMsg);
-        return;
-      }
-
-      for (var i = 0; i < breakpoints.length; i++) {
-        var bp = breakpoints[i];
-        var entry = doc.createElement('div');
-        entry.style.padding = '5px 10px';
-        entry.style.borderBottom = '1px solid #ddd';
-        entry.style.cursor = 'pointer';
-        entry.style.fontFamily = 'monospace';
-        entry.innerText = '● ' + (bp.label || bp.blockId);
-        entry.onclick = (function(blockId) {
-          return function() {
-            try {
-              var ws = top.Blockly.common.getMainWorkspace();
-              if (ws) {
-                var blk = ws.getBlockById(blockId);
-                if (blk) {
-                  blk.select();
-                  ws.centerOnBlock(blockId);
-                }
-              }
-            } catch (e) {
-              console.error('Error selecting block:', e);
-            }
-          };
-        })(bp.blockId);
-        entry.onmouseover = function() {
-          this.style.backgroundColor = '#e0e0e0';
-        };
-        entry.onmouseout = function() {
-          this.style.backgroundColor = '';
-        };
-        container.appendChild(entry);
-      }
     };
 
   }-*/;
