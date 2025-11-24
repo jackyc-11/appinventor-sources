@@ -5,8 +5,14 @@
 
 package com.google.appinventor.client.editor.youngandroid;
 
+import com.google.appinventor.client.Images;
+import com.google.appinventor.client.Ode;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.dom.client.Style;
 
@@ -52,6 +58,66 @@ public class DebugPanel extends VerticalPanel {
 
     HTML breakpointsHeader = new HTML("<div style='background-color: #f0f0f0; padding: 5px; font-weight: bold; border-bottom: 1px solid #ccc; margin: 0;'>Breakpoints</div>");
     add(breakpointsHeader);
+
+    // Create debug control buttons toolbar
+    HorizontalPanel debugToolbar = new HorizontalPanel();
+    debugToolbar.setSpacing(5);
+    debugToolbar.getElement().getStyle().setProperty("padding", "5px");
+    debugToolbar.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
+    debugToolbar.getElement().getStyle().setProperty("borderBottom", "1px solid #ccc");
+
+    Images images = Ode.getImageBundle();
+
+    // Continue button
+    Image continueButton = new Image(images.debugContinue());
+    continueButton.setTitle("Continue");
+    continueButton.getElement().getStyle().setCursor(Style.Cursor.POINTER);
+    continueButton.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent event) {
+        onContinue();
+      }
+    });
+    debugToolbar.add(continueButton);
+
+    // Step Over button
+    Image stepOverButton = new Image(images.debugStepOver());
+    stepOverButton.setTitle("Step Over");
+    stepOverButton.getElement().getStyle().setCursor(Style.Cursor.POINTER);
+    stepOverButton.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent event) {
+        onStepOver();
+      }
+    });
+    debugToolbar.add(stepOverButton);
+
+    // Step Down (Into) button
+    Image stepDownButton = new Image(images.debugStepDown());
+    stepDownButton.setTitle("Step Down");
+    stepDownButton.getElement().getStyle().setCursor(Style.Cursor.POINTER);
+    stepDownButton.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent event) {
+        onStepDown();
+      }
+    });
+    debugToolbar.add(stepDownButton);
+
+    // Step Up (Out) button
+    Image stepUpButton = new Image(images.debugStepUp());
+    stepUpButton.setTitle("Step Up");
+    stepUpButton.getElement().getStyle().setCursor(Style.Cursor.POINTER);
+    stepUpButton.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent event) {
+        onStepUp();
+      }
+    });
+    debugToolbar.add(stepUpButton);
+
+    add(debugToolbar);
+
     breakpointsPanel = new FlowPanel();
     breakpointsPanel.getElement().setId("aiBreakpointsPanel");
     breakpointsPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
@@ -59,6 +125,26 @@ public class DebugPanel extends VerticalPanel {
     breakpointsPanel.setHeight("150px");
     add(breakpointsPanel);
     setCellHeight(breakpointsPanel, "150px");
+  }
+
+  private void onContinue() {
+    // TODO: Implement continue execution
+    System.out.println("Continue clicked");
+  }
+
+  private void onStepOver() {
+    // TODO: Implement step over
+    System.out.println("Step Over clicked");
+  }
+
+  private void onStepDown() {
+    // TODO: Implement step into
+    System.out.println("Step Into clicked");
+  }
+
+  private void onStepUp() {
+    // TODO: Implement step out
+    System.out.println("Step Out clicked");
   }
 
   private static native void exportMethodsToJavascript() /*-{

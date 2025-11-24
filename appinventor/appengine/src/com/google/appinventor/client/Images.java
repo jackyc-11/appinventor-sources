@@ -57,6 +57,30 @@ public interface Images extends Resources {
   ImageResource boxRestore();
 
   /**
+   * Continue button image for the debugger
+   */
+  @Source("com/google/appinventor/images/continue.png")
+  ImageResource debugContinue();
+
+  /**
+   * Step down (step into) button image for the debugger
+   */
+  @Source("com/google/appinventor/images/stepDown.png")
+  ImageResource debugStepDown();
+
+  /**
+   * Step over button image for the debugger
+   */
+  @Source("com/google/appinventor/images/stepOver.png")
+  ImageResource debugStepOver();
+
+  /**
+   * Step up (step out) button image for the debugger
+   */
+  @Source("com/google/appinventor/images/stepUp.png")
+  ImageResource debugStepUp();
+
+  /**
    * Close button image for the tab widget
    */
   @Source("com/google/appinventor/images/close.png")
