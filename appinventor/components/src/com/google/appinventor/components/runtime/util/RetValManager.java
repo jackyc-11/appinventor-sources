@@ -123,6 +123,7 @@ public class RetValManager {
         retval.put("type", "error");
         retval.put("value", e.getMessage());
         retval.put("stacktrace", toStackTrace(e));
+        retval.put("globals", getGlobalVariables());
       } catch (JSONException ex) {
         Log.e(LOG_TAG, "Error building retval with stack trace", ex);
         return;
@@ -135,6 +136,43 @@ public class RetValManager {
         semaphore.notifyAll();
       }
     }
+  }
+
+  private static JSONObject getGlobalVariables() {
+    JSONObject globals = new JSONObject();
+    try {
+      if (ReplForm.topform != null) {
+        java.lang.reflect.Field field = ReplForm.topform.getClass().getField("global$Mnvar$Mnenvironment");
+        Object envObj = field.get(ReplForm.topform);
+
+        if (envObj instanceof gnu.mapping.Environment) {
+          gnu.mapping.Environment globalEnv = (gnu.mapping.Environment) envObj;
+          java.util.TreeMap<String, String> sortedVars = new java.util.TreeMap<String, String>();
+
+          gnu.mapping.LocationEnumeration locs = globalEnv.enumerateAllLocations();
+          while (locs.hasMoreElements()) {
+            gnu.mapping.Location loc = locs.nextLocation();
+            if (loc instanceof gnu.mapping.NamedLocation) {
+              gnu.mapping.NamedLocation namedLoc = (gnu.mapping.NamedLocation) loc;
+              String name = namedLoc.getKeySymbol().toString();
+
+              if (name.startsWith("g$")) {
+                Object value = namedLoc.get();
+                String displayName = name.substring(2);
+                sortedVars.put(displayName, value != null ? value.toString() : "null");
+              }
+            }
+          }
+
+          for (java.util.Map.Entry<String, String> entry : sortedVars.entrySet()) {
+            globals.put(entry.getKey(), entry.getValue());
+          }
+        }
+      }
+    } catch (Exception e) {
+      Log.e(LOG_TAG, "Error collecting global variables", e);
+    }
+    return globals;
   }
 
   private static JSONArray toStackTrace(WrappedException e) throws JSONException {

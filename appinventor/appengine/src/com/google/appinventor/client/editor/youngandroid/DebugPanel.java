@@ -148,12 +148,13 @@ public class DebugPanel extends VerticalPanel {
   }
 
   private static native void exportMethodsToJavascript() /*-{
-    top.DebugPanel_setVariables = function(variables) {
+    top.DebugPanel_setVariables = function(variables, globalVariables) {
       var container = top.document.getElementById('aiVariablesPanel');
       if (!container) return;
       var doc = container.ownerDocument || top.document;
       container.innerHTML = '';
       var hasVars = variables && Object.keys(variables).length > 0;
+      var hasGlobals = globalVariables && Object.keys(globalVariables).length > 0;
 
       var localsSection = doc.createElement('div');
       localsSection.style.padding = '5px';
@@ -196,13 +197,32 @@ public class DebugPanel extends VerticalPanel {
       container.appendChild(globalsSection);
       var globalsContent = doc.createElement('div');
       globalsContent.style.paddingLeft = '15px';
-      globalsContent.style.color = '#999';
-      globalsContent.style.padding = '5px';
-      globalsContent.innerText = '(No global variables tracked)';
+      if (!hasGlobals) {
+        globalsContent.style.color = '#999';
+        globalsContent.style.padding = '5px';
+        globalsContent.innerText = '(No global variables tracked)';
+      } else {
+        for (var globalName in globalVariables) {
+          if (globalVariables.hasOwnProperty(globalName)) {
+            var globalEntry = doc.createElement('div');
+            globalEntry.style.padding = '3px 5px';
+            globalEntry.style.fontFamily = 'monospace';
+            globalEntry.style.fontSize = '0.95em';
+            globalEntry.style.borderBottom = '1px solid #eee';
+            var nameSpan = doc.createElement('span');
+            nameSpan.innerText = globalName;
+            var valueSpan = doc.createElement('span');
+            valueSpan.innerText = ' = ' + globalVariables[globalName];
+            globalEntry.appendChild(nameSpan);
+            globalEntry.appendChild(valueSpan);
+            globalsContent.appendChild(globalEntry);
+          }
+        }
+      }
       container.appendChild(globalsContent);
     };
 
-    top.DebugPanel_setCallStack = function(stackTrace, errorMessage) {
+    top.DebugPanel_setCallStack = function(stackTrace, errorMessage, globalVariables) {
       var container = top.document.getElementById('aiCallStackPanel');
       if (!container) {
         return;
@@ -331,7 +351,7 @@ public class DebugPanel extends VerticalPanel {
         }
       }
 
-      top.DebugPanel_setVariables(allVars);
+      top.DebugPanel_setVariables(allVars, globalVariables || {});
     };
 
     top.DebugPanel_clearCallStack = function() {
@@ -358,7 +378,7 @@ public class DebugPanel extends VerticalPanel {
         console.error('Error clearing highlight:', e);
       }
 
-      top.DebugPanel_setVariables({});
+      top.DebugPanel_setVariables({}, {});
     };
 
   }-*/;

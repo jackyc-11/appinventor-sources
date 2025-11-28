@@ -1189,7 +1189,8 @@ Blockly.ReplMgr.processRetvals = function(responses) {
             if (r.stacktrace && r.stacktrace.length > 0) {
                 context.formatStackTrace(r.stacktrace);
                 if (typeof top.DebugPanel_setCallStack === 'function') {
-                    top.DebugPanel_setCallStack(r.stacktrace, r.value);
+                    var globalVars = r.globals || {};
+                    top.DebugPanel_setCallStack(r.stacktrace, r.value, globalVars);
                 }
                 var errorBlockId = null;
                 for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
