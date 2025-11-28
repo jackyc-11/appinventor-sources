@@ -9,8 +9,8 @@ import com.google.appinventor.client.Images;
 import com.google.appinventor.client.Ode;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.DisclosurePanel;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -28,38 +28,41 @@ public class DebugPanel extends VerticalPanel {
   public DebugPanel() {
     setSpacing(0);
     setWidth("100%");
-    setHeight("100%");
 
-    getElement().getStyle().setProperty("borderSpacing", "0");
-    getElement().setAttribute("cellpadding", "0");
-    getElement().setAttribute("cellspacing", "0");
+    VerticalPanel container = new VerticalPanel();
+    container.setWidth("100%");
+    container.setStylePrimaryName("ode-CollapsablePanel");
 
-    HTML variablesHeader = new HTML("<div style='background-color: #f0f0f0; padding: 5px; font-weight: bold; border-bottom: 1px solid #ccc; margin: 0;'>Variables</div>");
-    add(variablesHeader);
+    // Variables
     variablesPanel = new FlowPanel();
     variablesPanel.getElement().setId("aiVariablesPanel");
     variablesPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
     variablesPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
-    variablesPanel.getElement().getStyle().setProperty("borderBottom", "2px solid #ccc");
-    variablesPanel.setHeight("150px");
-    add(variablesPanel);
-    setCellHeight(variablesPanel, "150px");
+    variablesPanel.getElement().getStyle().setProperty("maxHeight", "300px");
+    DisclosurePanel variablesDisclosure = new DisclosurePanel("Variables");
+    variablesDisclosure.setContent(variablesPanel);
+    variablesDisclosure.setWidth("100%");
+    variablesDisclosure.setOpen(true);
+    container.add(variablesDisclosure);
 
-    HTML callStackHeader = new HTML("<div style='background-color: #f0f0f0; padding: 5px; font-weight: bold; border-bottom: 1px solid #ccc; margin: 0;'>Call Stack</div>");
-    add(callStackHeader);
+    // Call Stack
     callStackPanel = new FlowPanel();
     callStackPanel.getElement().setId("aiCallStackPanel");
     callStackPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
     callStackPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
-    callStackPanel.getElement().getStyle().setProperty("borderBottom", "2px solid #ccc");
-    callStackPanel.setHeight("200px");
-    add(callStackPanel);
-    setCellHeight(callStackPanel, "200px");
+    callStackPanel.getElement().getStyle().setProperty("maxHeight", "300px");
+    DisclosurePanel callStackDisclosure = new DisclosurePanel("Call Stack");
+    callStackDisclosure.setContent(callStackPanel);
+    callStackDisclosure.setWidth("100%");
+    callStackDisclosure.setOpen(true);
+    container.add(callStackDisclosure);
 
-    HTML breakpointsHeader = new HTML("<div style='background-color: #f0f0f0; padding: 5px; font-weight: bold; border-bottom: 1px solid #ccc; margin: 0;'>Breakpoints</div>");
-    add(breakpointsHeader);
+    // Breakpoints
+    VerticalPanel breakpointsContent = new VerticalPanel();
+    breakpointsContent.setWidth("100%");
+    breakpointsContent.setSpacing(0);
 
-    // Create debug control buttons toolbar
+    // Debug control buttons toolbar
     HorizontalPanel debugToolbar = new HorizontalPanel();
     debugToolbar.setSpacing(5);
     debugToolbar.getElement().getStyle().setProperty("padding", "5px");
@@ -116,15 +119,22 @@ public class DebugPanel extends VerticalPanel {
     });
     debugToolbar.add(stepUpButton);
 
-    add(debugToolbar);
+    breakpointsContent.add(debugToolbar);
 
     breakpointsPanel = new FlowPanel();
     breakpointsPanel.getElement().setId("aiBreakpointsPanel");
     breakpointsPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
     breakpointsPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
-    breakpointsPanel.setHeight("150px");
-    add(breakpointsPanel);
-    setCellHeight(breakpointsPanel, "150px");
+    breakpointsPanel.getElement().getStyle().setProperty("maxHeight", "300px");
+    breakpointsContent.add(breakpointsPanel);
+
+    DisclosurePanel breakpointsDisclosure = new DisclosurePanel("Breakpoints");
+    breakpointsDisclosure.setContent(breakpointsContent);
+    breakpointsDisclosure.setWidth("100%");
+    breakpointsDisclosure.setOpen(true);
+    container.add(breakpointsDisclosure);
+
+    add(container);
   }
 
   private void onContinue() {
