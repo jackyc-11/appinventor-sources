@@ -191,6 +191,18 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             this.putYail(AI.Yail.YAIL_SET_FORM_NAME_BEGIN + formName + AI.Yail.YAIL_SET_FORM_NAME_END);
             this.putYail(code);
             this.putYail(AI.Yail.YAIL_INIT_RUNTIME);
+
+            var breakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
+            if (breakpoints.length > 0) {
+                this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearBreakpoints))');
+                for (var i = 0; i < breakpoints.length; i++) {
+                    this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:addBreakpoint "' + breakpoints[i] + '"))');
+                }
+                this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
+            } else {
+                this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #f))');
+            }
+
             phoneState.componentYail = code;
         }
     }
@@ -1184,13 +1196,29 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                     runtimeerr("Encountered issue while caching project: " + error);
                 });
             break;
+        case "breakpoint":
+            if (r.stacktrace && r.stacktrace.length > 0) {
+                context.formatStackTrace(r.stacktrace);
+                if (typeof top.DebugPanel_setCallStack === 'function') {
+                    var globalVars = r.globals || {};
+                    top.DebugPanel_setCallStack(r.stacktrace, null, globalVars, true);
+                }
+                var breakpointBlock = Blockly.common.getMainWorkspace().getBlockById(r.blockid);
+                if (breakpointBlock) {
+                    Blockly.common.getMainWorkspace().highlightBlock(r.blockid);
+                }
+                if (typeof top.DebugPanel_showDebugToolbar === 'function') {
+                    top.DebugPanel_showDebugToolbar();
+                }
+            }
+            break;
         case "error":
             console.log("processRetVals: Error value = " + r.value);
             if (r.stacktrace && r.stacktrace.length > 0) {
                 context.formatStackTrace(r.stacktrace);
                 if (typeof top.DebugPanel_setCallStack === 'function') {
                     var globalVars = r.globals || {};
-                    top.DebugPanel_setCallStack(r.stacktrace, r.value, globalVars);
+                    top.DebugPanel_setCallStack(r.stacktrace, r.value, globalVars, false);
                 }
                 var errorBlockId = null;
                 for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
@@ -3748,3 +3776,54 @@ Blockly.ReplMgr.qrcode = function() {
 
     return qrcode;
 }();
+
+Blockly.ReplMgr.sendDebugContinue = function() {
+    var workspace = Blockly.common.getMainWorkspace();
+    if (workspace) {
+        workspace.highlightBlock(null);
+    }
+    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
+        top.DebugPanel_hideDebugToolbar();
+    }
+    var yail = '(com.google.appinventor.components.runtime.util.StackFrame:continuePause)';
+    Blockly.ReplMgr.putYail(yail);
+};
+
+Blockly.ReplMgr.sendDebugStepOver = function() {
+    // TODO: Implement step over functionality
+    console.log('Step over not yet implemented');
+    var workspace = Blockly.common.getMainWorkspace();
+    if (workspace) {
+        workspace.highlightBlock(null);
+    }
+    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
+        top.DebugPanel_hideDebugToolbar();
+    }
+    Blockly.ReplMgr.sendDebugContinue();
+};
+
+Blockly.ReplMgr.sendDebugStepDown = function() {
+    // TODO: Implement step into functionality
+    console.log('Step into not yet implemented');
+    var workspace = Blockly.common.getMainWorkspace();
+    if (workspace) {
+        workspace.highlightBlock(null);
+    }
+    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
+        top.DebugPanel_hideDebugToolbar();
+    }
+    Blockly.ReplMgr.sendDebugContinue();
+};
+
+Blockly.ReplMgr.sendDebugStepUp = function() {
+    // TODO: Implement step out functionality
+    console.log('Step out not yet implemented');
+    var workspace = Blockly.common.getMainWorkspace();
+    if (workspace) {
+        workspace.highlightBlock(null);
+    }
+    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
+        top.DebugPanel_hideDebugToolbar();
+    }
+    Blockly.ReplMgr.sendDebugContinue();
+};

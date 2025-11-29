@@ -65,9 +65,11 @@ public class DebugPanel extends VerticalPanel {
     // Debug control buttons toolbar
     HorizontalPanel debugToolbar = new HorizontalPanel();
     debugToolbar.setSpacing(5);
+    debugToolbar.getElement().setId("aiDebugToolbar");
     debugToolbar.getElement().getStyle().setProperty("padding", "5px");
     debugToolbar.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
     debugToolbar.getElement().getStyle().setProperty("borderBottom", "1px solid #ccc");
+    debugToolbar.getElement().getStyle().setProperty("display", "none"); // Hidden by default
 
     Images images = Ode.getImageBundle();
 
@@ -138,26 +140,72 @@ public class DebugPanel extends VerticalPanel {
   }
 
   private void onContinue() {
-    // TODO: Implement continue execution
     System.out.println("Continue clicked");
+    sendDebugContinue();
   }
 
   private void onStepOver() {
-    // TODO: Implement step over
     System.out.println("Step Over clicked");
+    sendDebugStepOver();
   }
 
   private void onStepDown() {
-    // TODO: Implement step into
     System.out.println("Step Into clicked");
+    sendDebugStepDown();
   }
 
   private void onStepUp() {
-    // TODO: Implement step out
     System.out.println("Step Out clicked");
+    sendDebugStepUp();
   }
 
+  private static native void sendDebugContinue() /*-{
+    if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.sendDebugContinue) {
+      top.Blockly.ReplMgr.sendDebugContinue();
+    } else {
+      console.error('Blockly.ReplMgr.sendDebugContinue not available');
+    }
+  }-*/;
+
+  private static native void sendDebugStepOver() /*-{
+    if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.sendDebugStepOver) {
+      top.Blockly.ReplMgr.sendDebugStepOver();
+    } else {
+      console.error('Blockly.ReplMgr.sendDebugStepOver not available');
+    }
+  }-*/;
+
+  private static native void sendDebugStepDown() /*-{
+    if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.sendDebugStepDown) {
+      top.Blockly.ReplMgr.sendDebugStepDown();
+    } else {
+      console.error('Blockly.ReplMgr.sendDebugStepDown not available');
+    }
+  }-*/;
+
+  private static native void sendDebugStepUp() /*-{
+    if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.sendDebugStepUp) {
+      top.Blockly.ReplMgr.sendDebugStepUp();
+    } else {
+      console.error('Blockly.ReplMgr.sendDebugStepUp not available');
+    }
+  }-*/;
+
   private static native void exportMethodsToJavascript() /*-{
+    top.DebugPanel_showDebugToolbar = function() {
+      var toolbar = top.document.getElementById('aiDebugToolbar');
+      if (toolbar) {
+        toolbar.style.display = 'block';
+      }
+    };
+
+    top.DebugPanel_hideDebugToolbar = function() {
+      var toolbar = top.document.getElementById('aiDebugToolbar');
+      if (toolbar) {
+        toolbar.style.display = 'none';
+      }
+    };
+
     top.DebugPanel_setVariables = function(variables, globalVariables) {
       var container = top.document.getElementById('aiVariablesPanel');
       if (!container) return;
@@ -232,7 +280,7 @@ public class DebugPanel extends VerticalPanel {
       container.appendChild(globalsContent);
     };
 
-    top.DebugPanel_setCallStack = function(stackTrace, errorMessage, globalVariables) {
+    top.DebugPanel_setCallStack = function(stackTrace, errorMessage, globalVariables, isBreakpoint) {
       var container = top.document.getElementById('aiCallStackPanel');
       if (!container) {
         return;
@@ -250,23 +298,22 @@ public class DebugPanel extends VerticalPanel {
         return;
       }
 
-      if (errorMessage) {
-        var errorDiv = doc.createElement('div');
-        errorDiv.style.padding = '5px';
-        errorDiv.style.color = '#d32f2f';
-        errorDiv.style.fontSize = '0.95em';
-        errorDiv.style.borderBottom = '1px solid #ffcccc';
-        errorDiv.style.backgroundColor = '#fff5f5';
-        errorDiv.style.marginBottom = '5px';
-        errorDiv.innerText = 'Error: ' + errorMessage;
-        container.appendChild(errorDiv);
+      if ((errorMessage && !isBreakpoint) || isBreakpoint) {
+        var messageDiv = doc.createElement('div');
+        messageDiv.style.padding = '5px';
+        messageDiv.style.color = '#d32f2f';
+        messageDiv.style.fontSize = '0.95em';
+        messageDiv.style.borderBottom = '1px solid #ffcccc';
+        messageDiv.style.backgroundColor = '#fff5f5';
+        messageDiv.style.marginBottom = '5px';
+        messageDiv.innerText = isBreakpoint ? 'Paused at Breakpoint' : 'Error: ' + errorMessage;
+        container.appendChild(messageDiv);
       }
 
       var title = doc.createElement('div');
       title.style.padding = '5px';
       title.style.fontWeight = 'bold';
       title.style.color = '#d32f2f';
-      title.innerText = 'Error Stack Trace:';
       container.appendChild(title);
 
       var allVars = {};

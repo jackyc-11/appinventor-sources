@@ -602,6 +602,17 @@ Blockly.WorkspaceSvg.prototype.loadBlocksFile = function(formJson, blocksContent
     if (this.getCanvas() != null) {
       this.render();
     }
+    if (Blockly.BlocklyEditor && Blockly.BlocklyEditor.restoreBreakpoints) {
+      var self = this;
+      setTimeout(function() {
+        Blockly.BlocklyEditor.restoreBreakpoints(self);
+        self.addChangeListener(function(event) {
+          if (event.type === Blockly.Events.BLOCK_DELETE && Blockly.BlocklyEditor.saveBreakpoints) {
+            Blockly.BlocklyEditor.saveBreakpoints(self);
+          }
+        });
+      }, 100);
+    }
   }
   return this;
 };

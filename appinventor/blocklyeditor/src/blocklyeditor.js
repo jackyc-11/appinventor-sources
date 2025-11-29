@@ -293,6 +293,7 @@ AI.Blockly.ContextMenuItems.registerAddBreakpointOption = function() {
         const icon = new AI.BreakpointIcon(block);
         block.addIcon(icon);
       }
+      Blockly.BlocklyEditor.saveBreakpoints(block.workspace);
     },
     preconditionFn: function (scope) {
       if (scope.block.workspace.isFlyout) {
@@ -1215,6 +1216,53 @@ AI.inject = function(container, workspace, isDarkMode=false) {
     }
     //AI.Blockly.navigationController.enable(workspace);
   });
+};
+
+Blockly.BlocklyEditor.getBreakpoints = function(workspace) {
+  var breakpoints = [];
+  var allBlocks = workspace.getAllBlocks(false);
+  for (var i = 0; i < allBlocks.length; i++) {
+    var block = allBlocks[i];
+    if (block.getIcon(AI.BreakpointIcon.TYPE)) {
+      breakpoints.push(block.id);
+    }
+  }
+  return breakpoints;
+};
+
+Blockly.BlocklyEditor.getBreakpointsStorageKey = function(workspace) {
+  // Use project ID and form name to create a unique key
+  var projectId = top.currentProjectId;
+  var formName = workspace.formName || 'Screen1';
+  return 'ai2_breakpoints_' + projectId + '_' + formName;
+};
+
+Blockly.BlocklyEditor.saveBreakpoints = function(workspace) {
+  var breakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
+  var key = Blockly.BlocklyEditor.getBreakpointsStorageKey(workspace);
+  if (breakpoints.length > 0) {
+    localStorage.setItem(key, JSON.stringify(breakpoints));
+  } else {
+    localStorage.removeItem(key);
+  }
+};
+
+Blockly.BlocklyEditor.restoreBreakpoints = function(workspace) {
+  var key = Blockly.BlocklyEditor.getBreakpointsStorageKey(workspace);
+  var stored = localStorage.getItem(key);
+  if (!stored) {
+    return;
+  }
+  var breakpoints = JSON.parse(stored);
+
+  for (var i = 0; i < breakpoints.length; i++) {
+    var blockId = breakpoints[i];
+    var block = workspace.getBlockById(blockId);
+    if (block && !block.getIcon(AI.BreakpointIcon.TYPE)) {
+      var icon = new AI.BreakpointIcon(block);
+      block.addIcon(icon);
+    }
+  }
 };
 
 // Preserve Blockly during Closure and GWT optimizations

@@ -7,9 +7,14 @@ import org.json.JSONObject;
 
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class StackFrame implements Cloneable {
 
@@ -21,6 +26,14 @@ public class StackFrame implements Cloneable {
       return new LinkedList<>();
     }
   };
+
+  // Breakpoint management
+  private static Set<String> breakpoints = new HashSet<>();
+  private static volatile boolean debugMode = false;
+  private static volatile boolean paused = false;
+  private static final Lock pauseLock = new ReentrantLock();
+  private static final Condition pauseCondition = pauseLock.newCondition();
+  private static String pausedBlockId = null;
 
   private Deque<String> blockIds;
   private Map<Symbol, Object> values;
@@ -98,6 +111,7 @@ public class StackFrame implements Cloneable {
 
   public static StackFrame enter(String blockId) {
     Log.d(LOG_TAG, "Entering block " + blockId);
+    checkBreakpoint(blockId);
     Deque<StackFrame> myFrames = frames.get();
     if (myFrames.isEmpty()) {
       myFrames.push(new StackFrame(blockId));
@@ -137,5 +151,75 @@ public class StackFrame implements Cloneable {
   public static void clear() {
     Log.d(LOG_TAG, "Clearing all stack frames");
     frames.get().clear();
+  }
+
+  public static void setBreakpoints(Set<String> newBreakpoints) {
+    breakpoints = new HashSet<>(newBreakpoints);
+  }
+
+  public static void addBreakpoint(String blockId) {
+    breakpoints.add(blockId);
+  }
+
+  public static void removeBreakpoint(String blockId) {
+    breakpoints.remove(blockId);
+  }
+
+  public static void clearBreakpoints() {
+    breakpoints.clear();
+  }
+
+  public static void setDebugMode(boolean enabled) {
+    debugMode = enabled;
+  }
+
+  public static boolean isDebugMode() {
+    return debugMode;
+  }
+
+  public static void continuePause() {
+    pauseLock.lock();
+    try {
+      paused = false;
+      pausedBlockId = null;
+      pauseCondition.signalAll();
+    } finally {
+      pauseLock.unlock();
+    }
+  }
+
+  public static boolean isPaused() {
+    return paused;
+  }
+
+  public static String getPausedBlockId() {
+    return pausedBlockId;
+  }
+
+  private static void checkBreakpoint(String blockId) {
+    if (!debugMode || !breakpoints.contains(blockId)) {
+      return;
+    }
+
+    pauseLock.lock();
+    try {
+      paused = true;
+      pausedBlockId = blockId;
+      notifyBreakpointHit(blockId);
+      while (paused) {
+        try {
+          pauseCondition.await();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          break;
+        }
+      }
+    } finally {
+      pauseLock.unlock();
+    }
+  }
+
+  private static void notifyBreakpointHit(String blockId) {
+    RetValManager.sendBreakpointHit(blockId);
   }
 }

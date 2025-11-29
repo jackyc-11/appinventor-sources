@@ -79,6 +79,9 @@ AI.BreakpointIcon = class extends Blockly.icons.Icon {
   onClick() {
     // Toggle breakpoint off when clicked
     this.sourceBlock.removeIcon(AI.BreakpointIcon.TYPE);
+    if (Blockly.BlocklyEditor && Blockly.BlocklyEditor.saveBreakpoints) {
+      Blockly.BlocklyEditor.saveBreakpoints(this.sourceBlock.workspace);
+    }
   }
 
   isClickableInFlyout() {

@@ -183,6 +183,34 @@ public class RetValManager {
     return trace;
   }
 
+  public static void sendBreakpointHit(String blockId) {
+    synchronized (semaphore) {
+      JSONObject retval = new JSONObject();
+      try {
+        retval.put("status", "OK");
+        retval.put("type", "breakpoint");
+        retval.put("blockid", blockId);
+
+        JSONArray stackTrace = new JSONArray();
+        for (StackFrame frame : StackFrame.get()) {
+          stackTrace.put(frame.toJson());
+        }
+        retval.put("stacktrace", stackTrace);
+        retval.put("globals", getGlobalVariables());
+      } catch (JSONException ex) {
+        Log.e(LOG_TAG, "Error building breakpoint notification", ex);
+        return;
+      }
+      boolean sendNotify = currentArray.isEmpty();
+      currentArray.add(retval);
+      if (PhoneStatus.getUseWebRTC()) {
+        webRTCsendCurrent();
+      } else if (sendNotify) {
+        semaphore.notifyAll();
+      }
+    }
+  }
+
   /*
    * pushScreen -- Push to a new Screen
    *
