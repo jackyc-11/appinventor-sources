@@ -32,6 +32,15 @@ AI.Yail['procedures_defreturn'] = function() {
   var procName = AI.Yail.YAIL_PROC_TAG + this.getFieldValue('NAME');
   var returnVal = AI.Yail.valueToCode(this, 'RETURN', AI.Yail.ORDER_NONE) || AI.Yail.YAIL_FALSE;
 
+  var returnInput = this.getInput('RETURN');
+  var returnBlock = returnInput && returnInput.connection && returnInput.connection.targetBlock();
+  var returnBlockId = returnBlock ? returnBlock.id : null;
+
+  var trackedReturnVal = returnVal;
+  if (returnBlockId) {
+    trackedReturnVal = '(track-block "' + returnBlockId + '" ' + returnVal + ')';
+  }
+
   var wrappedReturnVal;
   if (this.arguments_.length > 0) {
     var paramSetup = '';
@@ -45,19 +54,19 @@ AI.Yail['procedures_defreturn'] = function() {
                        '(begin (StackFrame:enter "' + this.id + '")' +
                        paramSetup +
                        ' (try-catch' +
-                       ' (let ((result ' + returnVal + ')) (StackFrame:exit "' + this.id + '") result)' +
+                       ' (let ((result ' + trackedReturnVal + ')) (StackFrame:exit "' + this.id + '") result)' +
                        ' (exception com.google.appinventor.components.runtime.errors.YailRuntimeError' +
                        ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))' +
                        ' (exception java.lang.Throwable' +
                        ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
                        ' ' + returnVal + ')';
   } else {
-    wrappedReturnVal = '(track-block "' + this.id + '" ' + returnVal + ')';
+    wrappedReturnVal = '(track-block "' + this.id + '" ' + trackedReturnVal + ')';
   }
 
   var args = this.arguments_.map(function (arg) {return argPrefix + arg;}).join(' ');
   var code = AI.Yail.YAIL_DEFINE + AI.Yail.YAIL_OPEN_COMBINATION + procName
-      + AI.Yail.YAIL_SPACER + args + AI.Yail.YAIL_CLOSE_COMBINATION 
+      + AI.Yail.YAIL_SPACER + args + AI.Yail.YAIL_CLOSE_COMBINATION
       + AI.Yail.YAIL_SPACER + wrappedReturnVal + AI.Yail.YAIL_CLOSE_COMBINATION;
   return code;
 };
