@@ -95,6 +95,9 @@
               (primitive-throw exception))))))
       (begin code ...)))))
 
+(define (yail-put-local name val)
+  (StackFrame:put name val))
+
 ;;;; add-component
 (define-constant simple-component-package-name "com.google.appinventor.components.runtime")
 

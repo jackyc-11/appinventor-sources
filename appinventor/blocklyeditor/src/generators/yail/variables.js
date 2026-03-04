@@ -127,21 +127,29 @@ AI.Yail['local_declaration_expression'] = function() {
 AI.Yail['local_variable'] = function(block,isExpression) {
   var code = AI.Yail.YAIL_LET;
   code += AI.Yail.YAIL_OPEN_COMBINATION + AI.Yail.YAIL_SPACER;
+  var varNames = [];
+  var varLocalNames = [];
   for(var i=0;block.getFieldValue("VAR" + i);i++){
-    code += AI.Yail.YAIL_OPEN_COMBINATION + AI.Yail.YAIL_LOCAL_VAR_TAG + (Blockly.usePrefixInYail ? "local_" : "") + block.getFieldValue("VAR" + i);
+    var varName = block.getFieldValue("VAR" + i);
+    var varLocalName = AI.Yail.YAIL_LOCAL_VAR_TAG + (Blockly.usePrefixInYail ? "local_" : "") + varName;
+    varNames.push(varName);
+    varLocalNames.push(varLocalName);
+    code += AI.Yail.YAIL_OPEN_COMBINATION + varLocalName;
     code += AI.Yail.YAIL_SPACER + ( AI.Yail.valueToCode(block, 'DECL' + i, AI.Yail.ORDER_NONE) || '0' );
     code += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER;
   }
   code += AI.Yail.YAIL_SPACER +  AI.Yail.YAIL_CLOSE_COMBINATION;
+  var stackFramePuts = '';
+  for (var j = 0; j < varNames.length; j++) {
+    stackFramePuts += ' (if *this-is-the-repl* (yail-put-local "' + varNames[j] + '" ' + varLocalNames[j] + ') #f)';
+  }
   // [lyn, 01/15/2013] Added to fix bug in local declaration expressions:
   if(isExpression){
-    if(!block.getInputTargetBlock("RETURN")){
-      code += AI.Yail.YAIL_SPACER + "0";
-    } else {
-      code += AI.Yail.YAIL_SPACER + AI.Yail.valueToCode(block, 'RETURN', AI.Yail.ORDER_NONE);
-    }
+    var returnExpr = !block.getInputTargetBlock("RETURN") ? "0"
+        : AI.Yail.valueToCode(block, 'RETURN', AI.Yail.ORDER_NONE);
+    code += AI.Yail.YAIL_SPACER + "(begin" + stackFramePuts + " " + returnExpr + ")";
   } else {
-    code += AI.Yail.YAIL_SPACER +
+    code += stackFramePuts + AI.Yail.YAIL_SPACER +
       (AI.Yail.statementToCode(block, 'STACK', AI.Yail.ORDER_NONE) || AI.Yail.YAIL_FALSE);
   }
   code += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_CLOSE_COMBINATION;

@@ -84,12 +84,13 @@ AI.Yail['controls_forEach'] = function() {
   emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
   emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "make a list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
 
-
-  var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR');
+  var varDisplayName = this.getFieldValue('VAR');
+  var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + varDisplayName;
   var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
   var bodyCode = AI.Yail.statementToCode(this, 'DO', AI.Yail.ORDER_NONE) ||  AI.Yail.YAIL_FALSE;
+  var stackFramePut = '(if *this-is-the-repl* (yail-put-local "' + varDisplayName + '" ' + loopIndexName + ') #f) ';
   return AI.Yail.YAIL_FOREACH + loopIndexName + AI.Yail.YAIL_SPACER
-         + AI.Yail.YAIL_BEGIN + bodyCode + AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER
+         + AI.Yail.YAIL_BEGIN + stackFramePut + bodyCode + AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER
          + listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
 };
 
@@ -98,8 +99,10 @@ AI.Yail['controls_for_each_dict'] = function() {
   var generator = AI.Yail['controls_for_each_dict'];
 
   var prefix = Blockly.usePrefixInYail ? 'local_' : '';
-  var keyName = yail.YAIL_LOCAL_VAR_TAG + prefix + this.getFieldValue('KEY');
-  var valueName = yail.YAIL_LOCAL_VAR_TAG + prefix + this.getFieldValue('VALUE');
+  var keyDisplayName = this.getFieldValue('KEY');
+  var valueDisplayName = this.getFieldValue('VALUE');
+  var keyName = yail.YAIL_LOCAL_VAR_TAG + prefix + keyDisplayName;
+  var valueName = yail.YAIL_LOCAL_VAR_TAG + prefix + valueDisplayName;
 
   var loopIndexName = 'item';
   var loopIndexCommandAndName = yail.getVariableCommandAndName(loopIndexName);
@@ -117,9 +120,11 @@ AI.Yail['controls_for_each_dict'] = function() {
   var bodyCode = yail.statementToCode(this, 'DO') || yail.YAIL_FALSE;
   var dictionaryCode = yail.valueToCode(this, 'DICT', yail.ORDER_NONE)
       || yail.YAIL_EMPTY_DICT;
+  var stackFramePuts = '(if *this-is-the-repl* (yail-put-local "' + keyDisplayName + '" ' + keyName + ') #f) '
+      + '(if *this-is-the-repl* (yail-put-local "' + valueDisplayName + '" ' + valueName + ') #f) ';
 
   return yail.YAIL_FOREACH + loopIndexName + yail.YAIL_SPACER
-      + letCode + bodyCode + yail.YAIL_CLOSE_COMBINATION
+      + letCode + stackFramePuts + bodyCode + yail.YAIL_CLOSE_COMBINATION
       + yail.YAIL_SPACER + dictionaryCode + yail.YAIL_CLOSE_COMBINATION;
 };
 
@@ -161,13 +166,15 @@ AI.Yail['controls_break'] = function() {
 // [lyn, 12/27/2012]
 AI.Yail['controls_forRange'] = function() {
   // For range loop.
-  var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR');
+  var varDisplayName = this.getFieldValue('VAR');
+  var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + varDisplayName;
   var startCode = AI.Yail.valueToCode(this, 'START', AI.Yail.ORDER_NONE) || 0;
   var endCode = AI.Yail.valueToCode(this, 'END', AI.Yail.ORDER_NONE) || 0;
   var stepCode = AI.Yail.valueToCode(this, 'STEP', AI.Yail.ORDER_NONE) || 0;
   var bodyCode = AI.Yail.statementToCode(this, 'DO', AI.Yail.ORDER_NONE) || AI.Yail.YAIL_FALSE;
+  var stackFramePut = '(if *this-is-the-repl* (yail-put-local "' + varDisplayName + '" ' + loopIndexName + ') #f) ';
   return AI.Yail.YAIL_FORRANGE + loopIndexName + AI.Yail.YAIL_SPACER
-         + AI.Yail.YAIL_BEGIN + bodyCode + AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER
+         + AI.Yail.YAIL_BEGIN + stackFramePut + bodyCode + AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER
          + startCode + AI.Yail.YAIL_SPACER
          + endCode + AI.Yail.YAIL_SPACER
          + stepCode + AI.Yail.YAIL_CLOSE_COMBINATION;
