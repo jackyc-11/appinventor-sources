@@ -289,9 +289,11 @@ AI.Blockly.ContextMenuItems.registerAddBreakpointOption = function() {
       const breakpointIcon = block.getIcon(AI.BreakpointIcon.TYPE);
       if (breakpointIcon) {
         block.removeIcon(AI.BreakpointIcon.TYPE);
+        Blockly.ReplMgr.notifyBreakpointRemoved(block.id);
       } else {
         const icon = new AI.BreakpointIcon(block);
         block.addIcon(icon);
+        Blockly.ReplMgr.notifyBreakpointAdded(block.id);
       }
       Blockly.BlocklyEditor.saveBreakpoints(block.workspace);
     },
@@ -1261,6 +1263,9 @@ Blockly.BlocklyEditor.restoreBreakpoints = function(workspace) {
     if (block && !block.getIcon(AI.BreakpointIcon.TYPE)) {
       var icon = new AI.BreakpointIcon(block);
       block.addIcon(icon);
+      if (typeof top.DebugPanel_addBreakpoint === 'function') {
+        top.DebugPanel_addBreakpoint(blockId);
+      }
     }
   }
 };

@@ -91,12 +91,12 @@ AI.Yail['procedures_defnoreturn'] = function() {
                   '(begin (StackFrame:enter "' + this.id + '")' +
                   paramSetup +
                   ' (try-catch' +
-                  ' (let ((result ' + body + ')) (StackFrame:exit "' + this.id + '") result)' +
+                  ' (let ((result (begin ' + body + '))) (StackFrame:exit "' + this.id + '") result)' +
                   ' (exception com.google.appinventor.components.runtime.errors.YailRuntimeError' +
                   ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))' +
                   ' (exception java.lang.Throwable' +
                   ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
-                  ' ' + body + ')';
+                  ' (begin ' + body + '))';
   } else {
     wrappedBody = '(track-block "' + this.id + '" ' + body + ')';
   }

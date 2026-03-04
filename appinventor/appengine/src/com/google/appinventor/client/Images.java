@@ -81,6 +81,12 @@ public interface Images extends Resources {
   ImageResource debugStepUp();
 
   /**
+   * Stop button image for the debugger
+   */
+  @Source("com/google/appinventor/images/stop.png")
+  ImageResource debugStop();
+
+  /**
    * Close button image for the tab widget
    */
   @Source("com/google/appinventor/images/close.png")

@@ -90,6 +90,7 @@ import com.google.appinventor.components.runtime.util.OnInitializeListener;
 import com.google.appinventor.components.runtime.util.PermissionRegistry;
 import com.google.appinventor.components.runtime.util.ScreenDensityUtil;
 import com.google.appinventor.components.runtime.util.SdkLevel;
+import com.google.appinventor.components.runtime.util.StackFrame;
 import com.google.appinventor.components.runtime.util.ViewUtil;
 
 import java.io.FileNotFoundException;
@@ -883,6 +884,10 @@ public class Form extends AppInventorCompatActivity
     // Events can only be dispatched after the screen initialized event has completed.
     boolean canDispatch = screenInitialized ||
         (component == this && eventName.equals("Initialize"));
+
+    if (canDispatch && StackFrame.isPaused()) {
+      canDispatch = false;
+    }
 
     if (canDispatch) {
       // Set activeForm to this before the event is dispatched.

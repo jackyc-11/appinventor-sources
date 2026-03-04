@@ -80,7 +80,7 @@ public class DebugPanel extends VerticalPanel {
     continueButton.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent event) {
-        onContinue();
+        sendDebugContinue();
       }
     });
     debugToolbar.add(continueButton);
@@ -92,7 +92,7 @@ public class DebugPanel extends VerticalPanel {
     stepOverButton.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent event) {
-        onStepOver();
+        sendDebugStepOver();
       }
     });
     debugToolbar.add(stepOverButton);
@@ -104,7 +104,7 @@ public class DebugPanel extends VerticalPanel {
     stepDownButton.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent event) {
-        onStepDown();
+        sendDebugStepDown();
       }
     });
     debugToolbar.add(stepDownButton);
@@ -116,10 +116,22 @@ public class DebugPanel extends VerticalPanel {
     stepUpButton.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent event) {
-        onStepUp();
+        sendDebugStepUp();
       }
     });
     debugToolbar.add(stepUpButton);
+
+    // Stop button
+    Image stopButton = new Image(images.debugStop());
+    stopButton.setTitle("Stop");
+    stopButton.getElement().getStyle().setCursor(Style.Cursor.POINTER);
+    stopButton.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent event) {
+        sendDebugStop();
+      }
+    });
+    debugToolbar.add(stopButton);
 
     breakpointsContent.add(debugToolbar);
 
@@ -128,6 +140,14 @@ public class DebugPanel extends VerticalPanel {
     breakpointsPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
     breakpointsPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
     breakpointsPanel.getElement().getStyle().setProperty("maxHeight", "300px");
+
+    com.google.gwt.user.client.ui.Label noBreakpointsMsg = new com.google.gwt.user.client.ui.Label("(No breakpoints set)");
+    noBreakpointsMsg.getElement().setClassName("no-breakpoints-msg");
+    noBreakpointsMsg.getElement().getStyle().setColor("#999");
+    noBreakpointsMsg.getElement().getStyle().setProperty("padding", "5px");
+    noBreakpointsMsg.getElement().getStyle().setProperty("fontStyle", "italic");
+    breakpointsPanel.add(noBreakpointsMsg);
+
     breakpointsContent.add(breakpointsPanel);
 
     DisclosurePanel breakpointsDisclosure = new DisclosurePanel("Breakpoints");
@@ -137,26 +157,6 @@ public class DebugPanel extends VerticalPanel {
     container.add(breakpointsDisclosure);
 
     add(container);
-  }
-
-  private void onContinue() {
-    System.out.println("Continue clicked");
-    sendDebugContinue();
-  }
-
-  private void onStepOver() {
-    System.out.println("Step Over clicked");
-    sendDebugStepOver();
-  }
-
-  private void onStepDown() {
-    System.out.println("Step Into clicked");
-    sendDebugStepDown();
-  }
-
-  private void onStepUp() {
-    System.out.println("Step Out clicked");
-    sendDebugStepUp();
   }
 
   private static native void sendDebugContinue() /*-{
@@ -188,6 +188,14 @@ public class DebugPanel extends VerticalPanel {
       top.Blockly.ReplMgr.sendDebugStepUp();
     } else {
       console.error('Blockly.ReplMgr.sendDebugStepUp not available');
+    }
+  }-*/;
+
+  private static native void sendDebugStop() /*-{
+    if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.sendDebugStop) {
+      top.Blockly.ReplMgr.sendDebugStop();
+    } else {
+      console.error('Blockly.ReplMgr.sendDebugStop not available');
     }
   }-*/;
 
@@ -310,12 +318,6 @@ public class DebugPanel extends VerticalPanel {
         container.appendChild(messageDiv);
       }
 
-      var title = doc.createElement('div');
-      title.style.padding = '5px';
-      title.style.fontWeight = 'bold';
-      title.style.color = '#d32f2f';
-      container.appendChild(title);
-
       var allVars = {};
 
       for (var i = stackTrace.length - 1; i >= 0; i--) {
@@ -330,45 +332,7 @@ public class DebugPanel extends VerticalPanel {
             entry.style.cursor = 'pointer';
             entry.style.fontFamily = 'monospace';
 
-            var blockInfo = 'Block ID: ' + blockId;
-            try {
-              var workspace = top.Blockly.common.getMainWorkspace();
-              if (workspace) {
-                var block = workspace.getBlockById(blockId);
-                if (block) {
-                  var blockType = block.type || 'unknown';
-                  var blockLabel = '';
-                  if (block.type === 'component_event') {
-                    var componentName = block.getFieldValue && block.getFieldValue('COMPONENT_SELECTOR');
-                    var eventName = block.eventName || 'unknown';
-                    blockLabel = (componentName || 'unknown') + '.' + eventName + ' event';
-                  } else if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_defreturn') {
-                    var procName = block.getFieldValue && block.getFieldValue('NAME');
-                    blockLabel = 'procedure "' + (procName || 'unknown') + '"';
-                  } else if (block.type === 'procedures_callnoreturn' || block.type === 'procedures_callreturn') {
-                    var procCallName = block.getFieldValue && block.getFieldValue('PROCNAME');
-                    blockLabel = 'call "' + (procCallName || 'unknown') + '"';
-                  } else if (block.type && block.type.indexOf('component_set_get') === 0) {
-                    var comp = block.instanceName || block.typeName || 'unknown';
-                    var prop = block.propertyName || 'unknown';
-                    blockLabel = 'set ' + comp + '.' + prop;
-                  } else if (block.type && block.type.indexOf('component_method') === 0) {
-                    var compName = block.instanceName || block.typeName || 'unknown';
-                    var methodName = block.methodName || 'unknown';
-                    blockLabel = compName + '.' + methodName;
-                  } else if (block.type && block.type.indexOf('component_') === 0) {
-                    var cName = block.instanceName || block.typeName || 'unknown';
-                    blockLabel = blockType.replace('component_', '').replace(/_/g, ' ') + ' ' + cName;
-                  } else {
-                    blockLabel = blockType.replace(/_/g, ' ');
-                  }
-                  blockInfo = blockLabel;
-                }
-              }
-            } catch (e) {
-              // If we can't get block info, just use the ID
-            }
-            entry.innerText = '  at ' + blockInfo;
+            entry.innerText = '  at ' + getBreakpointBlockLabel(blockId);
 
             entry.setAttribute('data-block-id', blockId);
             entry.onclick = function() {
@@ -378,11 +342,25 @@ public class DebugPanel extends VerticalPanel {
                 if (ws) {
                   var warningHandler = ws.getWarningHandler();
                   if (warningHandler) {
+                    if (ws.currentDebugHighlightTimeout) {
+                      top.clearTimeout(ws.currentDebugHighlightTimeout);
+                      ws.currentDebugHighlightTimeout = null;
+                    }
                     if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
                       warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
                     }
                     ws.currentDebugCollapseStack = warningHandler.highlightBlock_(bid);
                     ws.currentDebugBlockId = bid;
+                    ws.currentDebugHighlightTimeout = top.setTimeout(function() {
+                      try {
+                        if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+                          warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+                          ws.currentDebugBlockId = null;
+                          ws.currentDebugCollapseStack = null;
+                        }
+                      } catch (e) {}
+                      ws.currentDebugHighlightTimeout = null;
+                    }, 3000);
                   }
                 }
               } catch (e) {
@@ -423,12 +401,18 @@ public class DebugPanel extends VerticalPanel {
 
       try {
         var ws = top.Blockly.common.getMainWorkspace();
-        if (ws && ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
-          var warningHandler = ws.getWarningHandler();
-          if (warningHandler) {
-            warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
-            ws.currentDebugBlockId = null;
-            ws.currentDebugCollapseStack = null;
+        if (ws) {
+          if (ws.currentDebugHighlightTimeout) {
+            top.clearTimeout(ws.currentDebugHighlightTimeout);
+            ws.currentDebugHighlightTimeout = null;
+          }
+          if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+            var warningHandler = ws.getWarningHandler();
+            if (warningHandler) {
+              warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+              ws.currentDebugBlockId = null;
+              ws.currentDebugCollapseStack = null;
+            }
           }
         }
       } catch (e) {
@@ -436,6 +420,149 @@ public class DebugPanel extends VerticalPanel {
       }
 
       top.DebugPanel_setVariables({}, {});
+    };
+
+    // ── Breakpoints panel ────────────────────────────────────────────────
+
+    var getBreakpointBlockLabel = function(blockId) {
+      var label = blockId;
+      try {
+        var ws = top.Blockly.common.getMainWorkspace();
+        if (ws) {
+          var block = ws.getBlockById(blockId);
+          if (block) {
+            var blockType = block.type || 'unknown';
+            if (block.type === 'component_event') {
+              var compSel = block.getFieldValue && block.getFieldValue('COMPONENT_SELECTOR');
+              label = (compSel || 'unknown') + '.' + (block.eventName || 'unknown') + ' event';
+            } else if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_defreturn') {
+              label = 'procedure "' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown') + '"';
+            } else if (block.type === 'procedures_callnoreturn' || block.type === 'procedures_callreturn') {
+              label = 'call "' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown') + '"';
+            } else if (block.type && block.type.indexOf('component_set_get') === 0) {
+              label = 'set ' + (block.instanceName || block.typeName || 'unknown') + '.' + (block.propertyName || 'unknown');
+            } else if (block.type && block.type.indexOf('component_method') === 0) {
+              label = (block.instanceName || block.typeName || 'unknown') + '.' + (block.methodName || 'unknown');
+            } else if (block.type && block.type.indexOf('component_') === 0) {
+              label = blockType.replace('component_', '').replace(/_/g, ' ') + ' ' + (block.instanceName || block.typeName || 'unknown');
+            } else {
+              label = blockType.replace(/_/g, ' ');
+            }
+          }
+        }
+      } catch (e) {}
+      return label;
+    };
+
+    top.DebugPanel_addBreakpoint = function(blockId) {
+      var container = top.document.getElementById('aiBreakpointsPanel');
+      if (!container) return;
+      if (container.querySelector('[data-breakpoint-id="' + blockId + '"]')) return;
+
+      var doc = container.ownerDocument || top.document;
+      var emptyMsg = container.querySelector('.no-breakpoints-msg');
+      if (emptyMsg) emptyMsg.parentNode.removeChild(emptyMsg);
+
+      var entry = doc.createElement('div');
+      entry.style.padding = '4px 8px';
+      entry.style.borderBottom = '1px solid #ddd';
+      entry.style.cursor = 'pointer';
+      entry.style.fontFamily = 'monospace';
+      entry.style.fontSize = '1em';
+      entry.style.display = 'flex';
+      entry.style.justifyContent = 'space-between';
+      entry.style.alignItems = 'center';
+      entry.setAttribute('data-breakpoint-id', blockId);
+
+      var labelSpan = doc.createElement('span');
+      labelSpan.innerText = '\u25cf  ' + getBreakpointBlockLabel(blockId);
+      labelSpan.style.color = '#c62828';
+      entry.appendChild(labelSpan);
+
+      // × remove button
+      var xBtn = doc.createElement('span');
+      xBtn.innerText = '\u00d7';
+      xBtn.title = 'Remove breakpoint';
+      xBtn.style.color = '#aaa';
+      xBtn.style.fontSize = '1.5em';
+      xBtn.style.padding = '0 4px';
+      xBtn.style.cursor = 'pointer';
+      xBtn.style.flexShrink = '0';
+      xBtn.onmouseover = function() { this.style.color = '#d32f2f'; };
+      xBtn.onmouseout  = function() { this.style.color = '#aaa'; };
+      xBtn.onclick = function(e) {
+        e.stopPropagation();
+        try {
+          var ws = top.Blockly.common.getMainWorkspace();
+          if (ws) {
+            var b = ws.getBlockById(blockId);
+            if (b) {
+              b.removeIcon(top.AI.BreakpointIcon.TYPE);
+              top.Blockly.BlocklyEditor.saveBreakpoints(ws);
+            }
+          }
+          if (top.Blockly.ReplMgr && top.Blockly.ReplMgr.notifyBreakpointRemoved) {
+            top.Blockly.ReplMgr.notifyBreakpointRemoved(blockId);
+          }
+        } catch (err) {
+          console.error('Error removing breakpoint from panel:', err);
+        }
+      };
+      entry.appendChild(xBtn);
+
+      entry.onclick = function() {
+        try {
+          var ws = top.Blockly.common.getMainWorkspace();
+          if (ws) {
+            var warningHandler = ws.getWarningHandler();
+            if (warningHandler) {
+              if (ws.currentDebugHighlightTimeout) {
+                top.clearTimeout(ws.currentDebugHighlightTimeout);
+                ws.currentDebugHighlightTimeout = null;
+              }
+              if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+                warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+              }
+              ws.currentDebugCollapseStack = warningHandler.highlightBlock_(blockId);
+              ws.currentDebugBlockId = blockId;
+              ws.currentDebugHighlightTimeout = top.setTimeout(function() {
+                try {
+                  if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+                    warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+                    ws.currentDebugBlockId = null;
+                    ws.currentDebugCollapseStack = null;
+                  }
+                } catch (e) {}
+                ws.currentDebugHighlightTimeout = null;
+              }, 3000);
+            }
+          }
+        } catch (e) {
+          console.error('Error highlighting block from breakpoints panel:', e);
+        }
+      };
+      entry.onmouseover = function() { this.style.backgroundColor = '#fce4e4'; };
+      entry.onmouseout  = function() { this.style.backgroundColor = ''; };
+
+      container.appendChild(entry);
+    };
+
+    top.DebugPanel_removeBreakpoint = function(blockId) {
+      var container = top.document.getElementById('aiBreakpointsPanel');
+      if (!container) return;
+      var entry = container.querySelector('[data-breakpoint-id="' + blockId + '"]');
+      if (entry) entry.parentNode.removeChild(entry);
+      // Show empty-state message when no breakpoints remain
+      if (!container.querySelector('[data-breakpoint-id]')) {
+        var doc = container.ownerDocument || top.document;
+        var emptyDiv = doc.createElement('div');
+        emptyDiv.className = 'no-breakpoints-msg';
+        emptyDiv.style.color = '#999';
+        emptyDiv.style.padding = '5px';
+        emptyDiv.style.fontStyle = 'italic';
+        emptyDiv.innerText = '(No breakpoints set)';
+        container.appendChild(emptyDiv);
+      }
     };
 
   }-*/;

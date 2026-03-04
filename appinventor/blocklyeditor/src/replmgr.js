@@ -1202,13 +1202,21 @@ Blockly.ReplMgr.processRetvals = function(responses) {
 
                 Blockly.ReplMgr.currentPausedBlockId = r.blockid;
                 Blockly.ReplMgr.currentPausedStackDepth = r.stacktrace.length;
+                Blockly.ReplMgr.currentStackTrace = r.stacktrace;
 
                 var isTemporaryBreakpoint = Blockly.ReplMgr.temporaryBreakpoints.has(r.blockid);
 
                 if (isTemporaryBreakpoint) {
                     Blockly.ReplMgr.temporaryBreakpoints.delete(r.blockid);
-                    Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + r.blockid + '"))');
+                    var hitWs = Blockly.common.getMainWorkspace();
+                    var hasPermanent = hitWs &&
+                        Blockly.BlocklyEditor.getBreakpoints(hitWs).indexOf(r.blockid) !== -1;
+                    if (!hasPermanent) {
+                        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + r.blockid + '"))');
+                    }
                 }
+
+                Blockly.ReplMgr.temporaryExitBreakpoints.delete(r.blockid);
 
                 if (Blockly.ReplMgr.isSteppingInto) {
                     Blockly.ReplMgr.isSteppingInto = false;
@@ -1248,6 +1256,7 @@ Blockly.ReplMgr.processRetvals = function(responses) {
             break;
         case "error":
             console.log("processRetVals: Error value = " + r.value);
+            Blockly.ReplMgr.clearDebuggerState();
             if (r.stacktrace && r.stacktrace.length > 0) {
                 context.formatStackTrace(r.stacktrace);
                 if (typeof top.DebugPanel_setCallStack === 'function') {
@@ -3815,28 +3824,61 @@ Blockly.ReplMgr.qrcode = function() {
 Blockly.ReplMgr.currentPausedBlockId = null;
 Blockly.ReplMgr.currentPausedStackDepth = 0;
 Blockly.ReplMgr.temporaryBreakpoints = new Set();
+Blockly.ReplMgr.temporaryExitBreakpoints = new Set();
 Blockly.ReplMgr.isSteppingOver = false;
 Blockly.ReplMgr.stepOverTargetDepth = 0;
 Blockly.ReplMgr.isSteppingInto = false;
+Blockly.ReplMgr.currentStackTrace = null;
+
+Blockly.ReplMgr.notifyBreakpointAdded = function(blockId) {
+    var rs = top.ReplState;
+    if (rs && rs.phoneState && rs.phoneState.initialized) {
+        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:addBreakpoint "' + blockId + '"))');
+    }
+    if (typeof top.DebugPanel_addBreakpoint === 'function') {
+        top.DebugPanel_addBreakpoint(blockId);
+    }
+};
+
+Blockly.ReplMgr.notifyBreakpointRemoved = function(blockId) {
+    var rs = top.ReplState;
+    if (rs && rs.phoneState && rs.phoneState.initialized) {
+        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + blockId + '"))');
+    }
+    if (typeof top.DebugPanel_removeBreakpoint === 'function') {
+        top.DebugPanel_removeBreakpoint(blockId);
+    }
+};
+
+Blockly.ReplMgr.clearDebuggerState = function() {
+    Blockly.ReplMgr.isSteppingOver = false;
+    Blockly.ReplMgr.isSteppingInto = false;
+    Blockly.ReplMgr.currentPausedBlockId = null;
+    Blockly.ReplMgr.currentPausedStackDepth = 0;
+    Blockly.ReplMgr.currentStackTrace = null;
+    var clearWs = Blockly.common.getMainWorkspace();
+    var permanentSet = clearWs ? new Set(Blockly.BlocklyEditor.getBreakpoints(clearWs)) : new Set();
+    Blockly.ReplMgr.temporaryBreakpoints.forEach(function(blockId) {
+        if (!permanentSet.has(blockId)) {
+            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + blockId + '"))');
+        }
+    });
+    Blockly.ReplMgr.temporaryBreakpoints.clear();
+    Blockly.ReplMgr.temporaryExitBreakpoints.forEach(function(blockId) {
+        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeExitBreakpoint "' + blockId + '"))');
+    });
+    Blockly.ReplMgr.temporaryExitBreakpoints.clear();
+    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
+        top.DebugPanel_hideDebugToolbar();
+    }
+};
 
 Blockly.ReplMgr.sendDebugContinue = function() {
     var workspace = Blockly.common.getMainWorkspace();
     if (workspace) {
         workspace.highlightBlock(null);
     }
-    // Clear stepping state
-    Blockly.ReplMgr.isSteppingOver = false;
-    Blockly.ReplMgr.isSteppingInto = false;
-    Blockly.ReplMgr.currentPausedBlockId = null;
-    Blockly.ReplMgr.currentPausedStackDepth = 0;
-    // Remove all temporary breakpoints
-    Blockly.ReplMgr.temporaryBreakpoints.forEach(function(blockId) {
-        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + blockId + '"))');
-    });
-    Blockly.ReplMgr.temporaryBreakpoints.clear();
-    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
-        top.DebugPanel_hideDebugToolbar();
-    }
+    Blockly.ReplMgr.clearDebuggerState();
     var yail = '(com.google.appinventor.components.runtime.util.StackFrame:continuePause)';
     Blockly.ReplMgr.putYail(yail);
 };
@@ -4082,8 +4124,7 @@ Blockly.ReplMgr.sendDebugStepDown = function() {
     var childBlocks = Blockly.ReplMgr.findAllChildBlocks(currentBlock);
     for (var i = 0; i < childBlocks.length; i++) {
         var childBlock = childBlocks[i];
-        // Skip procedure call blocks - we'll set breakpoints at their entry points instead
-        if (!procedureCallIds.has(childBlock.id)) {
+        if (!procedureCallIds.has(childBlock.id) && !childBlock.outputConnection) {
             targetBlocks.push(childBlock);
         }
     }
@@ -4143,14 +4184,80 @@ Blockly.ReplMgr.sendDebugStepDown = function() {
 };
 
 Blockly.ReplMgr.sendDebugStepUp = function() {
-    // TODO: Implement step out functionality
-    console.log('Step out not yet implemented');
+    var workspace = Blockly.common.getMainWorkspace();
+    if (!workspace) {
+        console.error('No workspace available');
+        return;
+    }
+
+    var stackTrace = Blockly.ReplMgr.currentStackTrace;
+    if (!stackTrace || stackTrace.length === 0) {
+        Blockly.ReplMgr.sendDebugContinue();
+        return;
+    }
+
+    var currentFrame = stackTrace[0];
+    var blockIds = currentFrame ? currentFrame.blockIds : null;
+
+    if (!blockIds || blockIds.length <= 1) {
+        console.log('Step out: already at top level, continuing');
+        Blockly.ReplMgr.sendDebugContinue();
+        return;
+    }
+
+    var innermostBlock = workspace.getBlockById(blockIds[0]);
+    if (!innermostBlock ||
+        (innermostBlock.type !== 'procedures_defreturn' &&
+         innermostBlock.type !== 'procedures_defnoreturn')) {
+        console.log('Step out: not inside a procedure, continuing');
+        Blockly.ReplMgr.sendDebugContinue();
+        return;
+    }
+
+    var callSiteBlockId = null;
+    for (var i = 1; i < blockIds.length; i++) {
+        var candidate = workspace.getBlockById(blockIds[i]);
+        if (candidate &&
+            candidate.type !== 'procedures_defreturn' &&
+            candidate.type !== 'procedures_defnoreturn') {
+            callSiteBlockId = blockIds[i];
+            break;
+        }
+    }
+
+    if (callSiteBlockId) {
+        Blockly.ReplMgr.temporaryExitBreakpoints.add(callSiteBlockId);
+        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:addExitBreakpoint "' + callSiteBlockId + '"))');
+        console.log('Step out: exit breakpoint set at call site ' + callSiteBlockId);
+    } else {
+        console.log('Step out: could not identify call site');
+    }
+
+    workspace.highlightBlock(null);
+    var yail = '(com.google.appinventor.components.runtime.util.StackFrame:continuePause)';
+    Blockly.ReplMgr.putYail(yail);
+};
+
+Blockly.ReplMgr.sendDebugStop = function() {
     var workspace = Blockly.common.getMainWorkspace();
     if (workspace) {
         workspace.highlightBlock(null);
     }
+
+    Blockly.ReplMgr.clearDebuggerState();
+
+    if (workspace && Blockly.BlocklyEditor && Blockly.BlocklyEditor.getBreakpoints) {
+        var permanentBreakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
+        for (var i = 0; i < permanentBreakpoints.length; i++) {
+            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + permanentBreakpoints[i] + '"))');
+        }
+    }
+
+    // Clear debug UI
+    if (typeof top.DebugPanel_clearCallStack === 'function') {
+        top.DebugPanel_clearCallStack();
+    }
     if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
         top.DebugPanel_hideDebugToolbar();
     }
-    Blockly.ReplMgr.sendDebugContinue();
 };

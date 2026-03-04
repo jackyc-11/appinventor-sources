@@ -608,6 +608,19 @@ Blockly.WorkspaceSvg.prototype.loadBlocksFile = function(formJson, blocksContent
         Blockly.BlocklyEditor.restoreBreakpoints(self);
         self.addChangeListener(function(event) {
           if (event.type === Blockly.Events.BLOCK_DELETE && Blockly.BlocklyEditor.saveBreakpoints) {
+            if (Blockly.ReplMgr && Blockly.ReplMgr.notifyBreakpointRemoved) {
+              var key = Blockly.BlocklyEditor.getBreakpointsStorageKey(self);
+              var stored = localStorage.getItem(key);
+              if (stored) {
+                var prevBreakpoints = JSON.parse(stored);
+                var remaining = new Set(Blockly.BlocklyEditor.getBreakpoints(self));
+                prevBreakpoints.forEach(function(id) {
+                  if (!remaining.has(id)) {
+                    Blockly.ReplMgr.notifyBreakpointRemoved(id);
+                  }
+                });
+              }
+            }
             Blockly.BlocklyEditor.saveBreakpoints(self);
           }
         });

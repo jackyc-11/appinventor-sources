@@ -29,6 +29,7 @@ public class StackFrame implements Cloneable {
 
   // Breakpoint management
   private static Set<String> breakpoints = new HashSet<>();
+  private static Set<String> exitBreakpoints = new HashSet<>();
   private static volatile boolean debugMode = false;
   private static volatile boolean paused = false;
   private static final Lock pauseLock = new ReentrantLock();
@@ -128,6 +129,9 @@ public class StackFrame implements Cloneable {
       Log.w(LOG_TAG, "Attempted to exit block " + blockId + " but no frames exist");
       return null;
     }
+    if (debugMode && exitBreakpoints.remove(blockId)) {
+      pauseAt(blockId);
+    }
     String topBlockId = myFrames.getFirst().pop();
     if (topBlockId != null && !topBlockId.equals(blockId)) {
       Log.w(LOG_TAG, "Unexpected block id " + topBlockId + "; wanted to see: " + blockId);
@@ -165,8 +169,17 @@ public class StackFrame implements Cloneable {
     breakpoints.remove(blockId);
   }
 
+  public static void addExitBreakpoint(String blockId) {
+    exitBreakpoints.add(blockId);
+  }
+
+  public static void removeExitBreakpoint(String blockId) {
+    exitBreakpoints.remove(blockId);
+  }
+
   public static void clearBreakpoints() {
     breakpoints.clear();
+    exitBreakpoints.clear();
   }
 
   public static void setDebugMode(boolean enabled) {
@@ -194,6 +207,25 @@ public class StackFrame implements Cloneable {
 
   public static String getPausedBlockId() {
     return pausedBlockId;
+  }
+
+  private static void pauseAt(String blockId) {
+    pauseLock.lock();
+    try {
+      paused = true;
+      pausedBlockId = blockId;
+      notifyBreakpointHit(blockId);
+      while (paused) {
+        try {
+          pauseCondition.await();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          break;
+        }
+      }
+    } finally {
+      pauseLock.unlock();
+    }
   }
 
   private static void checkBreakpoint(String blockId) {
