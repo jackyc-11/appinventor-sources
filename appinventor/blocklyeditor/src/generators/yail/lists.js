@@ -335,10 +335,12 @@ AI.Yail['lists_map'] = function() {
   emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER + AI.Yail.YAIL_QUOTE + AI.Yail.YAIL_OPEN_COMBINATION;
   emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
   emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "make a list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
-  var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR');
+  var varDisplayName = this.getFieldValue('VAR');
+  var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + varDisplayName;
   var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
   var bodyCode = AI.Yail.valueToCode(this, 'TO', AI.Yail.ORDER_NONE) ||  AI.Yail.YAIL_FALSE;
-  var code = AI.Yail.YAIL_MAP + loopIndexName + AI.Yail.YAIL_SPACER + bodyCode + AI.Yail.YAIL_SPACER
+  var wrappedBody = AI.Yail.wrapBodyWithLocalTracking([varDisplayName], [loopIndexName], bodyCode);
+  var code = AI.Yail.YAIL_MAP + loopIndexName + AI.Yail.YAIL_SPACER + wrappedBody + AI.Yail.YAIL_SPACER
       + listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
   return [ code, AI.Yail.ORDER_ATOMIC ];
 };
@@ -350,10 +352,12 @@ AI.Yail['lists_filter'] = function() {
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER + AI.Yail.YAIL_QUOTE + AI.Yail.YAIL_OPEN_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "make a list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
-	var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR');
+	var varDisplayName = this.getFieldValue('VAR');
+	var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + varDisplayName;
 	var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
 	var bodyCode = AI.Yail.valueToCode(this, 'TEST', AI.Yail.ORDER_NONE) ||  AI.Yail.YAIL_FALSE;
-	var code = AI.Yail.YAIL_FILTER + loopIndexName + AI.Yail.YAIL_SPACER + bodyCode + AI.Yail.YAIL_SPACER
+	var wrappedBody = AI.Yail.wrapBodyWithLocalTracking([varDisplayName], [loopIndexName], bodyCode);
+	var code = AI.Yail.YAIL_FILTER + loopIndexName + AI.Yail.YAIL_SPACER + wrappedBody + AI.Yail.YAIL_SPACER
     	+ listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
     return [ code, AI.Yail.ORDER_ATOMIC ];
 };
@@ -365,13 +369,16 @@ AI.Yail['lists_reduce'] = function() {
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER + AI.Yail.YAIL_QUOTE + AI.Yail.YAIL_OPEN_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "make a list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
-	var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR1');
-	var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR2');
+	var var1DisplayName = this.getFieldValue('VAR1');
+	var var2DisplayName = this.getFieldValue('VAR2');
+	var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + var1DisplayName;
+	var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + var2DisplayName;
 	var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
 	var initAnswerCode = AI.Yail.valueToCode(this, 'INITANSWER', AI.Yail.ORDER_NONE);
 	var bodyCode = AI.Yail.valueToCode(this, 'COMBINE', AI.Yail.ORDER_NONE) ||  AI.Yail.YAIL_FALSE;
+	var wrappedBody = AI.Yail.wrapBodyWithLocalTracking([var1DisplayName, var2DisplayName], [loopIndexName1, loopIndexName2], bodyCode);
 	var code = AI.Yail.YAIL_REDUCE + initAnswerCode + AI.Yail.YAIL_SPACER + loopIndexName2 + AI.Yail.YAIL_SPACER
-				+ loopIndexName1 + AI.Yail.YAIL_SPACER + bodyCode + AI.Yail.YAIL_SPACER
+				+ loopIndexName1 + AI.Yail.YAIL_SPACER + wrappedBody + AI.Yail.YAIL_SPACER
 				+ listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
     return [ code, AI.Yail.ORDER_ATOMIC ];
 };
@@ -396,11 +403,14 @@ AI.Yail['lists_sort_comparator'] = function() {
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER + AI.Yail.YAIL_QUOTE + AI.Yail.YAIL_OPEN_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "make a list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
-	var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR1');
-	var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR2');
+	var var1DisplayName = this.getFieldValue('VAR1');
+	var var2DisplayName = this.getFieldValue('VAR2');
+	var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + var1DisplayName;
+	var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + var2DisplayName;
 	var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
 	var bodyCode = AI.Yail.valueToCode(this, 'COMPARE', AI.Yail.ORDER_NONE) ||  AI.Yail.YAIL_FALSE;
-	var code = AI.Yail.YAIL_SORT_COMPARATOR_NONDEST + loopIndexName1 + AI.Yail.YAIL_SPACER + loopIndexName2 + AI.Yail.YAIL_SPACER + bodyCode + AI.Yail.YAIL_SPACER
+	var wrappedBody = AI.Yail.wrapBodyWithLocalTracking([var1DisplayName, var2DisplayName], [loopIndexName1, loopIndexName2], bodyCode);
+	var code = AI.Yail.YAIL_SORT_COMPARATOR_NONDEST + loopIndexName1 + AI.Yail.YAIL_SPACER + loopIndexName2 + AI.Yail.YAIL_SPACER + wrappedBody + AI.Yail.YAIL_SPACER
     	+ listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
     return [ code, AI.Yail.ORDER_ATOMIC ];
 };
@@ -412,10 +422,12 @@ AI.Yail['lists_sort_key'] = function() {
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER + AI.Yail.YAIL_QUOTE + AI.Yail.YAIL_OPEN_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
 	emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "make a list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
-	var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR');
+	var varDisplayName = this.getFieldValue('VAR');
+	var loopIndexName = AI.Yail.YAIL_LOCAL_VAR_TAG + varDisplayName;
 	var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
 	var bodyCode = AI.Yail.valueToCode(this, 'KEY', AI.Yail.ORDER_NONE) ||  AI.Yail.YAIL_FALSE;
-	var code = AI.Yail.YAIL_SORT_KEY_NONDEST + loopIndexName + AI.Yail.YAIL_SPACER + bodyCode + AI.Yail.YAIL_SPACER
+	var wrappedBody = AI.Yail.wrapBodyWithLocalTracking([varDisplayName], [loopIndexName], bodyCode);
+	var code = AI.Yail.YAIL_SORT_KEY_NONDEST + loopIndexName + AI.Yail.YAIL_SPACER + wrappedBody + AI.Yail.YAIL_SPACER
     	+ listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
     return [ code, AI.Yail.ORDER_ATOMIC ];
 };
@@ -427,12 +439,15 @@ AI.Yail['lists_minimum_value'] = function() {
   emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER + AI.Yail.YAIL_QUOTE + AI.Yail.YAIL_OPEN_COMBINATION;
   emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
   emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "minimum value of list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
-  var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR1');
-  var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR2');
+  var var1DisplayName = this.getFieldValue('VAR1');
+  var var2DisplayName = this.getFieldValue('VAR2');
+  var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + var1DisplayName;
+  var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + var2DisplayName;
   var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
   var bodyCode = AI.Yail.valueToCode(this, 'COMPARE', AI.Yail.ORDER_NONE) ||
     ('(call-yail-primitive < (*list-for-runtime* (lexical-value ' + loopIndexName1 + ') (lexical-value ' + loopIndexName2 + ')) \'(number number) "<")');
-  var code = "(mincomparator-nondest " + loopIndexName1 + AI.Yail.YAIL_SPACER + loopIndexName2 + AI.Yail.YAIL_SPACER + bodyCode + AI.Yail.YAIL_SPACER
+  var wrappedBody = AI.Yail.wrapBodyWithLocalTracking([var1DisplayName, var2DisplayName], [loopIndexName1, loopIndexName2], bodyCode);
+  var code = "(mincomparator-nondest " + loopIndexName1 + AI.Yail.YAIL_SPACER + loopIndexName2 + AI.Yail.YAIL_SPACER + wrappedBody + AI.Yail.YAIL_SPACER
       + listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
   return [ code, AI.Yail.ORDER_ATOMIC ];
 };
@@ -444,12 +459,15 @@ AI.Yail['lists_maximum_value'] = function() {
   emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER + AI.Yail.YAIL_QUOTE + AI.Yail.YAIL_OPEN_COMBINATION;
   emptyListCode += AI.Yail.YAIL_CLOSE_COMBINATION;
   emptyListCode += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_DOUBLE_QUOTE + "maximum value of list" + AI.Yail.YAIL_DOUBLE_QUOTE + AI.Yail.YAIL_CLOSE_COMBINATION;
-  var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR1');
-  var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + this.getFieldValue('VAR2');
+  var var1DisplayName = this.getFieldValue('VAR1');
+  var var2DisplayName = this.getFieldValue('VAR2');
+  var loopIndexName1 = AI.Yail.YAIL_LOCAL_VAR_TAG + var1DisplayName;
+  var loopIndexName2 = AI.Yail.YAIL_LOCAL_VAR_TAG + var2DisplayName;
   var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
   var bodyCode = AI.Yail.valueToCode(this, 'COMPARE', AI.Yail.ORDER_NONE) ||
     ('(call-yail-primitive < (*list-for-runtime* (lexical-value ' + loopIndexName1 + ') (lexical-value ' + loopIndexName2 + ')) \'(number number) "<")');
-  var code = "(maxcomparator-nondest " + loopIndexName1 + AI.Yail.YAIL_SPACER + loopIndexName2 + AI.Yail.YAIL_SPACER + bodyCode + AI.Yail.YAIL_SPACER
+  var wrappedBody = AI.Yail.wrapBodyWithLocalTracking([var1DisplayName, var2DisplayName], [loopIndexName1, loopIndexName2], bodyCode);
+  var code = "(maxcomparator-nondest " + loopIndexName1 + AI.Yail.YAIL_SPACER + loopIndexName2 + AI.Yail.YAIL_SPACER + wrappedBody + AI.Yail.YAIL_SPACER
       + listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
   return [ code, AI.Yail.ORDER_ATOMIC ];
 };

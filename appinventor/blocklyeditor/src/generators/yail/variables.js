@@ -140,17 +140,23 @@ AI.Yail['local_variable'] = function(block,isExpression) {
   }
   code += AI.Yail.YAIL_SPACER +  AI.Yail.YAIL_CLOSE_COMBINATION;
   var stackFramePuts = '';
+  var stackFrameRemoves = '';
   for (var j = 0; j < varNames.length; j++) {
     stackFramePuts += ' (if *this-is-the-repl* (yail-put-local "' + varNames[j] + '" ' + varLocalNames[j] + ') #f)';
+    stackFrameRemoves += ' (if *this-is-the-repl* (yail-remove-local "' + varNames[j] + '") #f)';
   }
   // [lyn, 01/15/2013] Added to fix bug in local declaration expressions:
   if(isExpression){
     var returnExpr = !block.getInputTargetBlock("RETURN") ? "0"
         : AI.Yail.valueToCode(block, 'RETURN', AI.Yail.ORDER_NONE);
-    code += AI.Yail.YAIL_SPACER + "(begin" + stackFramePuts + " " + returnExpr + ")";
+    // Capture return value, remove locals, then return value
+    code += AI.Yail.YAIL_SPACER + "(let ((*yail-local-result*"
+        + " (begin" + stackFramePuts + " " + returnExpr + ")))"
+        + stackFrameRemoves + " *yail-local-result*)";
   } else {
     code += stackFramePuts + AI.Yail.YAIL_SPACER +
-      (AI.Yail.statementToCode(block, 'STACK', AI.Yail.ORDER_NONE) || AI.Yail.YAIL_FALSE);
+      (AI.Yail.statementToCode(block, 'STACK', AI.Yail.ORDER_NONE) || AI.Yail.YAIL_FALSE)
+      + stackFrameRemoves;
   }
   code += AI.Yail.YAIL_SPACER + AI.Yail.YAIL_CLOSE_COMBINATION;
   if(!isExpression){

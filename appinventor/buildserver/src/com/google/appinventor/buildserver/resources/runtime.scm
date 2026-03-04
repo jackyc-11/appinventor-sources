@@ -98,6 +98,9 @@
 (define (yail-put-local name val)
   (StackFrame:put name val))
 
+(define (yail-remove-local name)
+  (StackFrame:remove name))
+
 ;;;; add-component
 (define-constant simple-component-package-name "com.google.appinventor.components.runtime")
 

@@ -78,6 +78,13 @@ public class StackFrame implements Cloneable {
     }
   }
 
+  public static void remove(String name) {
+    Deque<StackFrame> myFrames = frames.get();
+    if (!myFrames.isEmpty()) {
+      myFrames.getFirst().values.remove(Symbol.valueOf(name));
+    }
+  }
+
   public JSONObject toJson() throws JSONException {
     JSONObject result = new JSONObject();
 

@@ -107,6 +107,24 @@ AI.Yail.YAIL_LIST_CONSTRUCTOR = "*list-for-runtime*";
 AI.Yail.SIMPLE_HEX_PREFIX = "&H";
 AI.Yail.YAIL_HEX_PREFIX = "#x";
 
+/**
+ * Wraps a lambda body-form to track local variables in the debug panel.
+ * @param {Array<string>} displayNames - variable display names (shown in Locals panel)
+ * @param {Array<string>} localNames - prefixed Kawa variable names (e.g. "$local_item")
+ * @param {string} bodyCode - the original body expression
+ * @return {string} wrapped YAIL code
+ */
+AI.Yail.wrapBodyWithLocalTracking = function(displayNames, localNames, bodyCode) {
+  var puts = '';
+  var removes = '';
+  for (var i = 0; i < displayNames.length; i++) {
+    puts += '(if *this-is-the-repl* (yail-put-local "' + displayNames[i] + '" ' + localNames[i] + ') #f) ';
+    removes += ' (if *this-is-the-repl* (yail-remove-local "' + displayNames[i] + '") #f)';
+  }
+  return '(let ((*yail-local-result* (begin ' + puts + bodyCode + ')))'
+      + removes + ' *yail-local-result*)';
+};
+
 // permit leading and trailing whitespace for checking that strings are numbers
 AI.Yail.INTEGER_REGEXP = "^[\\s]*[-+]?[0-9]+[\\s]*$";
 AI.Yail.FLONUM_REGEXP = "^[\\s]*[-+]?([0-9]*)((\\.[0-9]+)|[0-9]\\.)[\\s]*$";

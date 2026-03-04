@@ -89,9 +89,11 @@ AI.Yail['controls_forEach'] = function() {
   var listCode = AI.Yail.valueToCode(this, 'LIST', AI.Yail.ORDER_NONE) || emptyListCode;
   var bodyCode = AI.Yail.statementToCode(this, 'DO', AI.Yail.ORDER_NONE) ||  AI.Yail.YAIL_FALSE;
   var stackFramePut = '(if *this-is-the-repl* (yail-put-local "' + varDisplayName + '" ' + loopIndexName + ') #f) ';
+  var stackFrameRemove = ' (if *this-is-the-repl* (yail-remove-local "' + varDisplayName + '") #f)';
   return AI.Yail.YAIL_FOREACH + loopIndexName + AI.Yail.YAIL_SPACER
          + AI.Yail.YAIL_BEGIN + stackFramePut + bodyCode + AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER
-         + listCode + AI.Yail.YAIL_CLOSE_COMBINATION;
+         + listCode + AI.Yail.YAIL_CLOSE_COMBINATION
+         + stackFrameRemove;
 };
 
 AI.Yail['controls_for_each_dict'] = function() {
@@ -122,10 +124,13 @@ AI.Yail['controls_for_each_dict'] = function() {
       || yail.YAIL_EMPTY_DICT;
   var stackFramePuts = '(if *this-is-the-repl* (yail-put-local "' + keyDisplayName + '" ' + keyName + ') #f) '
       + '(if *this-is-the-repl* (yail-put-local "' + valueDisplayName + '" ' + valueName + ') #f) ';
+  var stackFrameRemoves = ' (if *this-is-the-repl* (yail-remove-local "' + keyDisplayName + '") #f)'
+      + ' (if *this-is-the-repl* (yail-remove-local "' + valueDisplayName + '") #f)';
 
   return yail.YAIL_FOREACH + loopIndexName + yail.YAIL_SPACER
       + letCode + stackFramePuts + bodyCode + yail.YAIL_CLOSE_COMBINATION
-      + yail.YAIL_SPACER + dictionaryCode + yail.YAIL_CLOSE_COMBINATION;
+      + yail.YAIL_SPACER + dictionaryCode + yail.YAIL_CLOSE_COMBINATION
+      + stackFrameRemoves;
 };
 
 AI.Yail['controls_for_each_dict'].generateGetListItemCode =
@@ -173,11 +178,13 @@ AI.Yail['controls_forRange'] = function() {
   var stepCode = AI.Yail.valueToCode(this, 'STEP', AI.Yail.ORDER_NONE) || 0;
   var bodyCode = AI.Yail.statementToCode(this, 'DO', AI.Yail.ORDER_NONE) || AI.Yail.YAIL_FALSE;
   var stackFramePut = '(if *this-is-the-repl* (yail-put-local "' + varDisplayName + '" ' + loopIndexName + ') #f) ';
+  var stackFrameRemove = ' (if *this-is-the-repl* (yail-remove-local "' + varDisplayName + '") #f)';
   return AI.Yail.YAIL_FORRANGE + loopIndexName + AI.Yail.YAIL_SPACER
          + AI.Yail.YAIL_BEGIN + stackFramePut + bodyCode + AI.Yail.YAIL_CLOSE_COMBINATION + AI.Yail.YAIL_SPACER
          + startCode + AI.Yail.YAIL_SPACER
          + endCode + AI.Yail.YAIL_SPACER
-         + stepCode + AI.Yail.YAIL_CLOSE_COMBINATION;
+         + stepCode + AI.Yail.YAIL_CLOSE_COMBINATION
+         + stackFrameRemove;
 };
 
 AI.Yail['for_lexical_variable_get'] = function() {
