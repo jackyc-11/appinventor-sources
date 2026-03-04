@@ -969,6 +969,12 @@ public class BlocklyPanel extends HTMLPanel {
     $wnd.Blockly.ReplMgr.resetYail(true);
   }-*/;
 
+  public static native void stopDebuggerIfPaused() /*-{
+    if ($wnd.Blockly && $wnd.Blockly.ReplMgr) {
+      $wnd.Blockly.ReplMgr.stopDebuggerIfPaused();
+    }
+  }-*/;
+
   public native void doPollYail() /*-{
     try {
       $wnd.Blockly.ReplMgr.pollYail();

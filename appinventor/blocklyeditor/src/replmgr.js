@@ -186,6 +186,7 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             // We need to send all of the component cruft (sorry)
             needinitialize = true;
             phoneState.blockYail = {}; // Sorry, have to send the blocks again.
+            this.resetDebuggerUI();
             this.putYail(AI.Yail.YAIL_CLEAR_FORM);
             // Tell the Companion the current form name
             this.putYail(AI.Yail.YAIL_SET_FORM_NAME_BEGIN + formName + AI.Yail.YAIL_SET_FORM_NAME_END);
@@ -317,6 +318,7 @@ Blockly.ReplMgr.pollYail = function(workspace, opt_force) {
 
 Blockly.ReplMgr.resetYail = function(partial) {
     console.log("resetYail: partial = " + partial);
+    this.resetDebuggerUI();
     var rs = top.ReplState;
     rs.phoneState.initialized = false; // so running io stops
     if (!partial) {
@@ -3850,6 +3852,27 @@ Blockly.ReplMgr.notifyBreakpointRemoved = function(blockId) {
     }
 };
 
+// Reset browser-side debugger UI and state.
+Blockly.ReplMgr.resetDebuggerUI = function() {
+    var ws = Blockly.common.getMainWorkspace();
+    if (ws) {
+        ws.highlightBlock(null);
+    }
+    Blockly.ReplMgr.isSteppingOver = false;
+    Blockly.ReplMgr.isSteppingInto = false;
+    Blockly.ReplMgr.currentPausedBlockId = null;
+    Blockly.ReplMgr.currentPausedStackDepth = 0;
+    Blockly.ReplMgr.currentStackTrace = null;
+    Blockly.ReplMgr.temporaryBreakpoints.clear();
+    Blockly.ReplMgr.temporaryExitBreakpoints.clear();
+    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
+        top.DebugPanel_hideDebugToolbar();
+    }
+    if (typeof top.DebugPanel_clearCallStack === 'function') {
+        top.DebugPanel_clearCallStack();
+    }
+};
+
 Blockly.ReplMgr.clearDebuggerState = function() {
     Blockly.ReplMgr.isSteppingOver = false;
     Blockly.ReplMgr.isSteppingInto = false;
@@ -4236,6 +4259,12 @@ Blockly.ReplMgr.sendDebugStepUp = function() {
     workspace.highlightBlock(null);
     var yail = '(com.google.appinventor.components.runtime.util.StackFrame:continuePause)';
     Blockly.ReplMgr.putYail(yail);
+};
+
+Blockly.ReplMgr.stopDebuggerIfPaused = function() {
+    if (Blockly.ReplMgr.currentPausedBlockId) {
+        Blockly.ReplMgr.sendDebugStop();
+    }
 };
 
 Blockly.ReplMgr.sendDebugStop = function() {

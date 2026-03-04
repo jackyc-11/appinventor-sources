@@ -416,6 +416,8 @@ public class Ode implements EntryPoint {
    * Switch to the Projects tab
    */
   public void switchToProjectsView() {
+    // Stop any paused debugger before leaving the project editor.
+    BlocklyPanel.stopDebuggerIfPaused();
     // We may need to pass the code below as a runnable to
     // screenShotMaybe() so build the runnable now
     hideChaff();

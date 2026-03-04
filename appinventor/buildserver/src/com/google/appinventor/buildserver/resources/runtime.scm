@@ -3681,6 +3681,8 @@ Dictionary implementation.
     ))
 
 (define (clear-current-form)
+  ;; Stop any paused debugger thread before clearing form state
+  (com.google.appinventor.components.runtime.util.StackFrame:stopExecution)
   (when (not (eq? *this-form* #!null))
     (clear-init-thunks)
     ;; TODO(sharon): also need to unregister any previously registered events

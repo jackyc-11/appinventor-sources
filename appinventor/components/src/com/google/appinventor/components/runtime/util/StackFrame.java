@@ -212,10 +212,12 @@ public class StackFrame implements Cloneable {
   public static void stopExecution() {
     pauseLock.lock();
     try {
-      stopRequested = true;
-      paused = false;
-      pausedBlockId = null;
-      pauseCondition.signalAll();
+      if (paused) {
+        stopRequested = true;
+        paused = false;
+        pausedBlockId = null;
+        pauseCondition.signalAll();
+      }
     } finally {
       pauseLock.unlock();
     }
