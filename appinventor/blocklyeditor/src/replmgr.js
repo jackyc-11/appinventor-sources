@@ -4244,20 +4244,11 @@ Blockly.ReplMgr.sendDebugStop = function() {
         workspace.highlightBlock(null);
     }
 
+    Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:stopExecution))');
+
     Blockly.ReplMgr.clearDebuggerState();
 
-    if (workspace && Blockly.BlocklyEditor && Blockly.BlocklyEditor.getBreakpoints) {
-        var permanentBreakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
-        for (var i = 0; i < permanentBreakpoints.length; i++) {
-            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + permanentBreakpoints[i] + '"))');
-        }
-    }
-
-    // Clear debug UI
     if (typeof top.DebugPanel_clearCallStack === 'function') {
         top.DebugPanel_clearCallStack();
-    }
-    if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
-        top.DebugPanel_hideDebugToolbar();
     }
 };

@@ -32,6 +32,7 @@ public class StackFrame implements Cloneable {
   private static Set<String> exitBreakpoints = new HashSet<>();
   private static volatile boolean debugMode = false;
   private static volatile boolean paused = false;
+  private static volatile boolean stopRequested = false;
   private static final Lock pauseLock = new ReentrantLock();
   private static final Condition pauseCondition = pauseLock.newCondition();
   private static String pausedBlockId = null;
@@ -201,6 +202,18 @@ public class StackFrame implements Cloneable {
     }
   }
 
+  public static void stopExecution() {
+    pauseLock.lock();
+    try {
+      stopRequested = true;
+      paused = false;
+      pausedBlockId = null;
+      pauseCondition.signalAll();
+    } finally {
+      pauseLock.unlock();
+    }
+  }
+
   public static boolean isPaused() {
     return paused;
   }
@@ -222,6 +235,10 @@ public class StackFrame implements Cloneable {
           Thread.currentThread().interrupt();
           break;
         }
+      }
+      if (stopRequested) {
+        stopRequested = false;
+        throw new DebugStopException();
       }
     } finally {
       pauseLock.unlock();
@@ -245,6 +262,10 @@ public class StackFrame implements Cloneable {
           Thread.currentThread().interrupt();
           break;
         }
+      }
+      if (stopRequested) {
+        stopRequested = false;
+        throw new DebugStopException();
       }
     } finally {
       pauseLock.unlock();

@@ -116,6 +116,9 @@ public class RetValManager {
   }
 
   public static void sendErrorWithStackTrace(WrappedException e) {
+    if (e.getCause() instanceof DebugStopException) {
+      return;
+    }
     synchronized (semaphore) {
       JSONObject retval = new JSONObject();
       try {
