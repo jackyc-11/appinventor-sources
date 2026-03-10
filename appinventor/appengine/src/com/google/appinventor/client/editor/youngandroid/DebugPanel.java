@@ -43,6 +43,8 @@ public class DebugPanel extends VerticalPanel {
     variablesDisclosure.setContent(variablesPanel);
     variablesDisclosure.setWidth("100%");
     variablesDisclosure.setOpen(true);
+    variablesDisclosure.getElement().setId("aiVariablesSection");
+    variablesDisclosure.getElement().getStyle().setProperty("display", "none");
     container.add(variablesDisclosure);
 
     // Call Stack
@@ -55,6 +57,8 @@ public class DebugPanel extends VerticalPanel {
     callStackDisclosure.setContent(callStackPanel);
     callStackDisclosure.setWidth("100%");
     callStackDisclosure.setOpen(true);
+    callStackDisclosure.getElement().setId("aiCallStackSection");
+    callStackDisclosure.getElement().getStyle().setProperty("display", "none");
     container.add(callStackDisclosure);
 
     // Breakpoints
@@ -212,6 +216,20 @@ public class DebugPanel extends VerticalPanel {
       if (toolbar) {
         toolbar.style.display = 'none';
       }
+    };
+
+    top.DebugPanel_showDebugPanels = function() {
+      var v = top.document.getElementById('aiVariablesSection');
+      if (v) v.style.display = '';
+      var cs = top.document.getElementById('aiCallStackSection');
+      if (cs) cs.style.display = '';
+    };
+
+    top.DebugPanel_hideDebugPanels = function() {
+      var v = top.document.getElementById('aiVariablesSection');
+      if (v) v.style.display = 'none';
+      var cs = top.document.getElementById('aiCallStackSection');
+      if (cs) cs.style.display = 'none';
     };
 
     top.DebugPanel_setVariables = function(variables, globalVariables) {
