@@ -1243,9 +1243,6 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                 if (typeof top.DebugPanel_showDebugToolbar === 'function') {
                     top.DebugPanel_showDebugToolbar();
                 }
-                if (typeof top.DebugPanel_showDebugPanels === 'function') {
-                    top.DebugPanel_showDebugPanels();
-                }
             } else {
                 if (Blockly.ReplMgr.isSteppingOver || Blockly.ReplMgr.isSteppingInto) {
                     Blockly.ReplMgr.isSteppingOver = false;
@@ -1254,9 +1251,6 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                     Blockly.ReplMgr.currentPausedStackDepth = 0;
                     if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
                         top.DebugPanel_hideDebugToolbar();
-                    }
-                    if (typeof top.DebugPanel_hideDebugPanels === 'function') {
-                        top.DebugPanel_hideDebugPanels();
                     }
                     console.log('Execution ended');
                 }
@@ -1270,9 +1264,6 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                 if (typeof top.DebugPanel_setCallStack === 'function') {
                     var globalVars = r.globals || {};
                     top.DebugPanel_setCallStack(r.stacktrace, r.value, globalVars, false);
-                }
-                if (typeof top.DebugPanel_showDebugPanels === 'function') {
-                    top.DebugPanel_showDebugPanels();
                 }
                 var errorBlockId = null;
                 for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
@@ -3879,9 +3870,6 @@ Blockly.ReplMgr.resetDebuggerUI = function() {
     if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
         top.DebugPanel_hideDebugToolbar();
     }
-    if (typeof top.DebugPanel_hideDebugPanels === 'function') {
-        top.DebugPanel_hideDebugPanels();
-    }
     if (typeof top.DebugPanel_clearCallStack === 'function') {
         top.DebugPanel_clearCallStack();
     }
@@ -3929,9 +3917,6 @@ Blockly.ReplMgr.clearDebuggerState = function() {
     Blockly.ReplMgr.temporaryExitBreakpoints.clear();
     if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
         top.DebugPanel_hideDebugToolbar();
-    }
-    if (typeof top.DebugPanel_hideDebugPanels === 'function') {
-        top.DebugPanel_hideDebugPanels();
     }
 };
 

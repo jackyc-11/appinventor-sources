@@ -17,9 +17,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.dom.client.Style;
 
 public class DebugPanel extends VerticalPanel {
-  private FlowPanel variablesPanel;
-  private FlowPanel callStackPanel;
-  private FlowPanel breakpointsPanel;
 
   static {
     exportMethodsToJavascript();
@@ -32,39 +29,6 @@ public class DebugPanel extends VerticalPanel {
     VerticalPanel container = new VerticalPanel();
     container.setWidth("100%");
     container.setStylePrimaryName("ode-CollapsablePanel");
-
-    // Variables
-    variablesPanel = new FlowPanel();
-    variablesPanel.getElement().setId("aiVariablesPanel");
-    variablesPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
-    variablesPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
-    variablesPanel.getElement().getStyle().setProperty("maxHeight", "300px");
-    DisclosurePanel variablesDisclosure = new DisclosurePanel("Variables");
-    variablesDisclosure.setContent(variablesPanel);
-    variablesDisclosure.setWidth("100%");
-    variablesDisclosure.setOpen(true);
-    variablesDisclosure.getElement().setId("aiVariablesSection");
-    variablesDisclosure.getElement().getStyle().setProperty("display", "none");
-    container.add(variablesDisclosure);
-
-    // Call Stack
-    callStackPanel = new FlowPanel();
-    callStackPanel.getElement().setId("aiCallStackPanel");
-    callStackPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
-    callStackPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
-    callStackPanel.getElement().getStyle().setProperty("maxHeight", "300px");
-    DisclosurePanel callStackDisclosure = new DisclosurePanel("Call Stack");
-    callStackDisclosure.setContent(callStackPanel);
-    callStackDisclosure.setWidth("100%");
-    callStackDisclosure.setOpen(true);
-    callStackDisclosure.getElement().setId("aiCallStackSection");
-    callStackDisclosure.getElement().getStyle().setProperty("display", "none");
-    container.add(callStackDisclosure);
-
-    // Breakpoints
-    VerticalPanel breakpointsContent = new VerticalPanel();
-    breakpointsContent.setWidth("100%");
-    breakpointsContent.setSpacing(0);
 
     // Debug control buttons toolbar
     HorizontalPanel debugToolbar = new HorizontalPanel();
@@ -137,9 +101,38 @@ public class DebugPanel extends VerticalPanel {
     });
     debugToolbar.add(stopButton);
 
-    breakpointsContent.add(debugToolbar);
+    container.add(debugToolbar);
 
-    breakpointsPanel = new FlowPanel();
+    // Variables
+    FlowPanel variablesPanel = new FlowPanel();
+    variablesPanel.getElement().setId("aiVariablesPanel");
+    variablesPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
+    variablesPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
+    variablesPanel.getElement().getStyle().setProperty("maxHeight", "300px");
+    DisclosurePanel variablesDisclosure = new DisclosurePanel("Variables");
+    variablesDisclosure.setContent(variablesPanel);
+    variablesDisclosure.setWidth("100%");
+    variablesDisclosure.setOpen(true);
+    variablesDisclosure.getElement().setId("aiVariablesSection");
+    variablesDisclosure.getElement().getStyle().setProperty("display", "none");
+    container.add(variablesDisclosure);
+
+    // Call Stack
+    FlowPanel callStackPanel = new FlowPanel();
+    callStackPanel.getElement().setId("aiCallStackPanel");
+    callStackPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
+    callStackPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
+    callStackPanel.getElement().getStyle().setProperty("maxHeight", "300px");
+    DisclosurePanel callStackDisclosure = new DisclosurePanel("Call Stack");
+    callStackDisclosure.setContent(callStackPanel);
+    callStackDisclosure.setWidth("100%");
+    callStackDisclosure.setOpen(true);
+    callStackDisclosure.getElement().setId("aiCallStackSection");
+    callStackDisclosure.getElement().getStyle().setProperty("display", "none");
+    container.add(callStackDisclosure);
+
+    // Breakpoints
+    FlowPanel breakpointsPanel = new FlowPanel();
     breakpointsPanel.getElement().setId("aiBreakpointsPanel");
     breakpointsPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
     breakpointsPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
@@ -152,10 +145,8 @@ public class DebugPanel extends VerticalPanel {
     noBreakpointsMsg.getElement().getStyle().setProperty("fontStyle", "italic");
     breakpointsPanel.add(noBreakpointsMsg);
 
-    breakpointsContent.add(breakpointsPanel);
-
     DisclosurePanel breakpointsDisclosure = new DisclosurePanel("Breakpoints");
-    breakpointsDisclosure.setContent(breakpointsContent);
+    breakpointsDisclosure.setContent(breakpointsPanel);
     breakpointsDisclosure.setWidth("100%");
     breakpointsDisclosure.setOpen(true);
     container.add(breakpointsDisclosure);
@@ -209,6 +200,10 @@ public class DebugPanel extends VerticalPanel {
       if (toolbar) {
         toolbar.style.display = 'block';
       }
+      var v = top.document.getElementById('aiVariablesSection');
+      if (v) v.style.display = '';
+      var cs = top.document.getElementById('aiCallStackSection');
+      if (cs) cs.style.display = '';
     };
 
     top.DebugPanel_hideDebugToolbar = function() {
@@ -216,16 +211,6 @@ public class DebugPanel extends VerticalPanel {
       if (toolbar) {
         toolbar.style.display = 'none';
       }
-    };
-
-    top.DebugPanel_showDebugPanels = function() {
-      var v = top.document.getElementById('aiVariablesSection');
-      if (v) v.style.display = '';
-      var cs = top.document.getElementById('aiCallStackSection');
-      if (cs) cs.style.display = '';
-    };
-
-    top.DebugPanel_hideDebugPanels = function() {
       var v = top.document.getElementById('aiVariablesSection');
       if (v) v.style.display = 'none';
       var cs = top.document.getElementById('aiCallStackSection');
