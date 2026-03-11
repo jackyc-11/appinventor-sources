@@ -3891,7 +3891,7 @@ Blockly.ReplMgr.enterErrorPausedState = function() {
         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeExitBreakpoint "' + blockId + '"))');
     });
     Blockly.ReplMgr.temporaryExitBreakpoints.clear();
-    if (typeof top.DebugPanel_showDebugToolbar === 'function') {
+    if (permanentSet.size > 0 && typeof top.DebugPanel_showDebugToolbar === 'function') {
         top.DebugPanel_showDebugToolbar();
     }
 };
