@@ -45,9 +45,11 @@
       (begin
         (StackFrame:enter block-id)
         (try-catch
-         (let ((result (begin code ...)))
-           (StackFrame:exit block-id)
-           result)  ;; Return the actual result, not the StackFrame!
+         (call-with-values
+          (lambda () (begin code ...))
+          (lambda track-result
+            (StackFrame:exit block-id)
+            (apply values track-result)))
          (exception com.google.appinventor.components.runtime.errors.YailRuntimeError
           (begin
             ;; IMPORTANT: Capture stack BEFORE clearing or exiting!
@@ -78,9 +80,11 @@
             (StackFrame:put (car names) (car vals))
             (loop (cdr names) (cdr vals))))
         (try-catch
-         (let ((result (begin code ...)))
-           (StackFrame:exit block-id)
-           result)
+         (call-with-values
+          (lambda () (begin code ...))
+          (lambda track-result
+            (StackFrame:exit block-id)
+            (apply values track-result)))
          (exception com.google.appinventor.components.runtime.errors.YailRuntimeError
           (begin
             (let ((wrapped (make WrappedException exception)))
@@ -99,7 +103,8 @@
   (StackFrame:put name val))
 
 (define (yail-remove-local name)
-  (StackFrame:remove name))
+  (StackFrame:remove name)
+  #f)
 
 ;;;; add-component
 (define-constant simple-component-package-name "com.google.appinventor.components.runtime")

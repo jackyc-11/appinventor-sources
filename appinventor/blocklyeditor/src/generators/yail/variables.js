@@ -76,11 +76,18 @@ AI.Yail['lexical_variable_set'] = function() {
       name = this.eventparam;
     }
   }
+  var pair = Blockly.unprefixName(name);
+  var prefix = pair[0];
+  var unprefixedName = pair[1];
+  var isLocal = !(prefix === Blockly.Msg.LANG_VARIABLES_GLOBAL_PREFIX || prefix === Blockly.GLOBAL_KEYWORD);
   var commandAndName = AI.Yail.setVariableCommandAndName(name);
   code += commandAndName[0];
-  name = commandAndName[1];
-  code += name + AI.Yail.YAIL_SPACER + argument0
+  var yailName = commandAndName[1];
+  code += yailName + AI.Yail.YAIL_SPACER + argument0
       + AI.Yail.YAIL_CLOSE_COMBINATION;
+  if (isLocal) {
+    code = '(begin ' + code + ' (if *this-is-the-repl* (yail-put-local "' + unprefixedName + '" ' + yailName + ') #f))';
+  }
   return code;
 };
 
@@ -162,6 +169,6 @@ AI.Yail['local_variable'] = function(block,isExpression) {
   if(!isExpression){
     return code;
   } else {
-    return [ code, AI.Yail.ORDER_ATOMIC ];
+    return [ '(track-block "' + block.id + '" ' + code + ')', AI.Yail.ORDER_ATOMIC ];
   }
 };
