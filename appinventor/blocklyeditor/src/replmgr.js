@@ -1265,28 +1265,23 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                     var globalVars = r.globals || {};
                     top.DebugPanel_setCallStack(r.stacktrace, r.value, globalVars, false);
                 }
-                var errorBlockId = null;
-                for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
-                    var frame = r.stacktrace[frameIdx];
-                    if (frame.blockIds && frame.blockIds.length > 0) {
-                        var lastBlockId = frame.blockIds[frame.blockIds.length - 1];
-                        var lastBlock = Blockly.common.getMainWorkspace().getBlockById(lastBlockId);
-                        if (lastBlock && lastBlock.type !== 'component_event') {
-                            errorBlockId = lastBlockId;
-                            break;
+                var errWs = Blockly.common.getMainWorkspace();
+                var hasBreakpoints = errWs && Blockly.BlocklyEditor.getBreakpoints(errWs).length > 0;
+                if (hasBreakpoints) {
+                    var errorBlockId = null;
+                    for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
+                        var frame = r.stacktrace[frameIdx];
+                        if (frame.blockIds && frame.blockIds.length > 0) {
+                            var innermostBlockId = frame.blockIds[0];
+                            var innermostBlock = errWs.getBlockById(innermostBlockId);
+                            if (innermostBlock && innermostBlock.type !== 'component_event') {
+                                errorBlockId = innermostBlockId;
+                                break;
+                            }
                         }
                     }
-                }
-                var allBlocks = Blockly.common.getMainWorkspace().getAllBlocks(false);
-                for (var i = 0; i < allBlocks.length; i++) {
-                    if (allBlocks[i].replError) {
-                        allBlocks[i].replError = null;
-                    }
-                }
-                if (errorBlockId) {
-                    var errorBlock = Blockly.common.getMainWorkspace().getBlockById(errorBlockId);
-                    if (errorBlock) {
-                        errorBlock.replError = "Runtime Error: " + r.value;
+                    if (errorBlockId) {
+                        errWs.highlightBlock(errorBlockId);
                     }
                 }
             }

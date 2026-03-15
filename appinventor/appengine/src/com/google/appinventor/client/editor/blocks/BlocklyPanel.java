@@ -781,6 +781,9 @@ public class BlocklyPanel extends HTMLPanel {
       handler.determineDuplicateComponentEventHandlers();
       workspace.requestErrorChecking();
     }
+    if ($wnd.Blockly.BlocklyEditor && $wnd.Blockly.BlocklyEditor.restoreBreakpoints) {
+      $wnd.Blockly.BlocklyEditor.restoreBreakpoints(workspace);
+    }
   }-*/;
 
   // [lyn, 2014/10/27] added formJson for upgrading

@@ -568,5 +568,19 @@ public class DebugPanel extends VerticalPanel {
       }
     };
 
+    top.DebugPanel_clearBreakpoints = function() {
+      var container = top.document.getElementById('aiBreakpointsPanel');
+      if (!container) return;
+      container.innerHTML = '';
+      var doc = container.ownerDocument || top.document;
+      var emptyDiv = doc.createElement('div');
+      emptyDiv.className = 'no-breakpoints-msg';
+      emptyDiv.style.color = '#999';
+      emptyDiv.style.padding = '5px';
+      emptyDiv.style.fontStyle = 'italic';
+      emptyDiv.innerText = '(No breakpoints set)';
+      container.appendChild(emptyDiv);
+    };
+
   }-*/;
 }

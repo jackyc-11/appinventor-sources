@@ -1250,13 +1250,26 @@ Blockly.BlocklyEditor.saveBreakpoints = function(workspace) {
 };
 
 Blockly.BlocklyEditor.restoreBreakpoints = function(workspace) {
+  if (typeof top.DebugPanel_clearBreakpoints === 'function') {
+    top.DebugPanel_clearBreakpoints();
+  }
+
+  var allBlocks = workspace.getAllBlocks(false);
+  for (var i = 0; i < allBlocks.length; i++) {
+    var block = allBlocks[i];
+    if (block.getIcon(AI.BreakpointIcon.TYPE)) {
+      if (typeof top.DebugPanel_addBreakpoint === 'function') {
+        top.DebugPanel_addBreakpoint(block.id);
+      }
+    }
+  }
+
   var key = Blockly.BlocklyEditor.getBreakpointsStorageKey(workspace);
   var stored = localStorage.getItem(key);
   if (!stored) {
     return;
   }
   var breakpoints = JSON.parse(stored);
-
   for (var i = 0; i < breakpoints.length; i++) {
     var blockId = breakpoints[i];
     var block = workspace.getBlockById(blockId);
