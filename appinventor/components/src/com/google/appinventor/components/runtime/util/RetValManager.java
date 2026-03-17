@@ -162,7 +162,17 @@ public class RetValManager {
               if (name.startsWith("g$")) {
                 Object value = namedLoc.get();
                 String displayName = name.substring(2);
-                sortedVars.put(displayName, value != null ? value.toString() : "null");
+                String displayValue;
+                if (value == null) {
+                  displayValue = "null";
+                } else {
+                  try {
+                    displayValue = JsonUtil.getJsonRepresentation(value);
+                  } catch (JSONException ex) {
+                    displayValue = value.toString();
+                  }
+                }
+                sortedVars.put(displayName, displayValue);
               }
             }
           }

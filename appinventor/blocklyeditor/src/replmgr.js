@@ -3832,6 +3832,7 @@ Blockly.ReplMgr.notifyBreakpointAdded = function(blockId) {
     var rs = top.ReplState;
     if (rs && rs.phoneState && rs.phoneState.initialized) {
         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:addBreakpoint "' + blockId + '"))');
+        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
     }
     if (typeof top.DebugPanel_addBreakpoint === 'function') {
         top.DebugPanel_addBreakpoint(blockId);
@@ -3842,6 +3843,11 @@ Blockly.ReplMgr.notifyBreakpointRemoved = function(blockId) {
     var rs = top.ReplState;
     if (rs && rs.phoneState && rs.phoneState.initialized) {
         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + blockId + '"))');
+        var workspace = Blockly.common.getMainWorkspace();
+        var remaining = workspace ? Blockly.BlocklyEditor.getBreakpoints(workspace) : [];
+        if (remaining.length === 0) {
+            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #f))');
+        }
     }
     if (typeof top.DebugPanel_removeBreakpoint === 'function') {
         top.DebugPanel_removeBreakpoint(blockId);

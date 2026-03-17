@@ -99,7 +99,17 @@ public class StackFrame implements Cloneable {
       for (Map.Entry<Symbol, Object> entry : values.entrySet()) {
         String key = entry.getKey().toString();
         Object value = entry.getValue();
-        varsObject.put(key, value != null ? value.toString() : "null");
+        String displayValue;
+        if (value == null) {
+          displayValue = "null";
+        } else {
+          try {
+            displayValue = JsonUtil.getJsonRepresentation(value);
+          } catch (JSONException e) {
+            displayValue = value.toString();
+          }
+        }
+        varsObject.put(key, displayValue);
       }
       result.put("vars", varsObject);
     }
