@@ -192,6 +192,7 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             this.putYail(AI.Yail.YAIL_SET_FORM_NAME_BEGIN + formName + AI.Yail.YAIL_SET_FORM_NAME_END);
             this.putYail(code);
             this.putYail(AI.Yail.YAIL_INIT_RUNTIME);
+            this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clear))');
 
             var breakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
             if (breakpoints.length > 0) {

@@ -159,6 +159,7 @@ public class StackFrame implements Cloneable {
 
   public static StackFrame pushFrame(String blockId) {
     Log.d(LOG_TAG, "Pushing new frame for block id " + blockId);
+    checkBreakpoint(blockId);
     StackFrame newFrame = new StackFrame(blockId);
     frames.get().push(newFrame);
     return newFrame;

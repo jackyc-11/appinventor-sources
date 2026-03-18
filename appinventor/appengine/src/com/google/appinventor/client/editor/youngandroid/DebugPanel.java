@@ -321,8 +321,6 @@ public class DebugPanel extends VerticalPanel {
         container.appendChild(messageDiv);
       }
 
-      var allVars = {};
-
       for (var i = stackTrace.length - 1; i >= 0; i--) {
         var frame = stackTrace[i];
         if (frame.blockIds && frame.blockIds.length > 0) {
@@ -378,18 +376,11 @@ public class DebugPanel extends VerticalPanel {
             };
             container.appendChild(entry);
           }
-
-          if (frame.vars && Object.keys(frame.vars).length > 0) {
-            for (var varName in frame.vars) {
-              if (frame.vars.hasOwnProperty(varName)) {
-                allVars[varName] = frame.vars[varName];
-              }
-            }
-          }
         }
       }
 
-      top.DebugPanel_setVariables(allVars, globalVariables || {});
+      var innermostVars = (stackTrace.length > 0 && stackTrace[0].vars) ? stackTrace[0].vars : {};
+      top.DebugPanel_setVariables(innermostVars, globalVariables || {});
     };
 
     top.DebugPanel_clearCallStack = function() {

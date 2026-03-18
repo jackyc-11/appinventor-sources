@@ -51,10 +51,10 @@ AI.Yail['procedures_defreturn'] = function() {
     }
 
     wrappedReturnVal = '(if *this-is-the-repl* ' +
-                       '(begin (StackFrame:enter "' + this.id + '")' +
+                       '(begin (StackFrame:pushFrame "' + this.id + '")' +
                        paramSetup +
                        ' (try-catch' +
-                       ' (let ((result ' + trackedReturnVal + ')) (StackFrame:exit "' + this.id + '") result)' +
+                       ' (let ((result ' + trackedReturnVal + ')) (StackFrame:popFrame) result)' +
                        ' (exception com.google.appinventor.components.runtime.errors.YailRuntimeError' +
                        ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))' +
                        ' (exception java.lang.Throwable' +
@@ -88,10 +88,10 @@ AI.Yail['procedures_defnoreturn'] = function() {
     }
 
     wrappedBody = '(if *this-is-the-repl* ' +
-                  '(begin (StackFrame:enter "' + this.id + '")' +
+                  '(begin (StackFrame:pushFrame "' + this.id + '")' +
                   paramSetup +
                   ' (try-catch' +
-                  ' (let ((result (begin ' + body + '))) (StackFrame:exit "' + this.id + '") result)' +
+                  ' (let ((result (begin ' + body + '))) (StackFrame:popFrame) result)' +
                   ' (exception com.google.appinventor.components.runtime.errors.YailRuntimeError' +
                   ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))' +
                   ' (exception java.lang.Throwable' +
