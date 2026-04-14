@@ -291,6 +291,72 @@ public class DebugPanel extends VerticalPanel {
       container.appendChild(globalsContent);
     };
 
+    var getBreakpointBlockLabel = function(blockId) {
+      try {
+        var ws = top.Blockly.common.getMainWorkspace();
+        if (!ws) {
+          return blockId;
+        }
+        var block = ws.getBlockById(blockId);
+        if (!block) {
+          return blockId;
+        }
+        var t = block.type || 'unknown';
+        if (t === 'component_event') {
+          var compSel = block.getFieldValue && block.getFieldValue('COMPONENT_SELECTOR');
+          return (compSel || 'unknown') + '.' + (block.eventName || 'unknown');
+        }
+        if (t === 'procedures_defnoreturn' || t === 'procedures_defreturn') {
+          return 'procedure "' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown') + '"';
+        }
+        if (t === 'procedures_callnoreturn' || t === 'procedures_callreturn') {
+          return 'call "' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown') + '"';
+        }
+        if (t.indexOf('component_set_get') === 0) {
+          return 'set ' + (block.instanceName || block.typeName || 'unknown') + '.' + (block.propertyName || 'unknown');
+        }
+        if (t.indexOf('component_method') === 0) {
+          return (block.instanceName || block.typeName || 'unknown') + '.' + (block.methodName || 'unknown');
+        }
+        if (t.indexOf('component_') === 0) {
+          return t.replace('component_', '').replace(/_/g, ' ') + ' ' + (block.instanceName || block.typeName || 'unknown');
+        }
+        return t.replace(/_/g, ' ');
+      } catch (e) {
+        return blockId;
+      }
+    };
+
+    var highlightBlockTemporarily = function(blockId) {
+      try {
+        var ws = top.Blockly.common.getMainWorkspace();
+        if (!ws) return;
+        var warningHandler = ws.getWarningHandler();
+        if (!warningHandler) return;
+        if (ws.currentDebugHighlightTimeout) {
+          top.clearTimeout(ws.currentDebugHighlightTimeout);
+          ws.currentDebugHighlightTimeout = null;
+        }
+        if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+          warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+        }
+        ws.currentDebugCollapseStack = warningHandler.highlightBlock_(blockId);
+        ws.currentDebugBlockId = blockId;
+        ws.currentDebugHighlightTimeout = top.setTimeout(function() {
+          try {
+            if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
+              warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
+              ws.currentDebugBlockId = null;
+              ws.currentDebugCollapseStack = null;
+            }
+          } catch (e) {}
+          ws.currentDebugHighlightTimeout = null;
+        }, 3000);
+      } catch (e) {
+        console.error('Error highlighting block:', e);
+      }
+    };
+
     top.DebugPanel_setCallStack = function(stackTrace, errorMessage, globalVariables, isBreakpoint) {
       var container = top.document.getElementById('aiCallStackPanel');
       if (!container) {
@@ -321,66 +387,42 @@ public class DebugPanel extends VerticalPanel {
         container.appendChild(messageDiv);
       }
 
-      for (var i = stackTrace.length - 1; i >= 0; i--) {
+      var globalsForPanel = globalVariables || {};
+
+      for (var i = 0; i < stackTrace.length; i++) {
         var frame = stackTrace[i];
         if (frame.blockIds && frame.blockIds.length > 0) {
-
-          for (var j = 0; j < frame.blockIds.length; j++) {
-            var blockId = frame.blockIds[j];
-            var entry = doc.createElement('div');
-            entry.style.padding = '5px 10px';
-            entry.style.borderBottom = '1px solid #ddd';
-            entry.style.cursor = 'pointer';
-            entry.style.fontFamily = 'monospace';
-
-            entry.innerText = '  at ' + getBreakpointBlockLabel(blockId);
-
-            entry.setAttribute('data-block-id', blockId);
+          var blockId = frame.blockIds[frame.blockIds.length - 1];
+          var frameLocals = (frame.vars && typeof frame.vars === 'object') ? frame.vars : {};
+          var entry = doc.createElement('div');
+          entry.style.padding = '5px 10px';
+          entry.style.borderBottom = '1px solid #ddd';
+          entry.style.cursor = 'pointer';
+          entry.style.fontFamily = 'monospace';
+          entry.innerText = getBreakpointBlockLabel(blockId);
+          entry.setAttribute('data-block-id', blockId);
+          (function(bid, localsForFrame) {
             entry.onclick = function() {
-              var bid = this.getAttribute('data-block-id');
               try {
-                var ws = top.Blockly.common.getMainWorkspace();
-                if (ws) {
-                  var warningHandler = ws.getWarningHandler();
-                  if (warningHandler) {
-                    if (ws.currentDebugHighlightTimeout) {
-                      top.clearTimeout(ws.currentDebugHighlightTimeout);
-                      ws.currentDebugHighlightTimeout = null;
-                    }
-                    if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
-                      warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
-                    }
-                    ws.currentDebugCollapseStack = warningHandler.highlightBlock_(bid);
-                    ws.currentDebugBlockId = bid;
-                    ws.currentDebugHighlightTimeout = top.setTimeout(function() {
-                      try {
-                        if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
-                          warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
-                          ws.currentDebugBlockId = null;
-                          ws.currentDebugCollapseStack = null;
-                        }
-                      } catch (e) {}
-                      ws.currentDebugHighlightTimeout = null;
-                    }, 3000);
-                  }
-                }
-              } catch (e) {
-                console.error('Error highlighting block:', e);
+                top.DebugPanel_setVariables(localsForFrame, globalsForPanel);
+              } catch (eVars) {
+                console.error('Error updating variables for stack frame:', eVars);
               }
+              highlightBlockTemporarily(bid);
             };
-            entry.onmouseover = function() {
-              this.style.backgroundColor = '#e0e0e0';
-            };
-            entry.onmouseout = function() {
-              this.style.backgroundColor = '';
-            };
-            container.appendChild(entry);
-          }
+          })(blockId, frameLocals);
+          entry.onmouseover = function() {
+            this.style.backgroundColor = '#e0e0e0';
+          };
+          entry.onmouseout = function() {
+            this.style.backgroundColor = '';
+          };
+          container.appendChild(entry);
         }
       }
 
       var innermostVars = (stackTrace.length > 0 && stackTrace[0].vars) ? stackTrace[0].vars : {};
-      top.DebugPanel_setVariables(innermostVars, globalVariables || {});
+      top.DebugPanel_setVariables(innermostVars, globalsForPanel);
     };
 
     top.DebugPanel_clearCallStack = function() {
@@ -417,36 +459,6 @@ public class DebugPanel extends VerticalPanel {
     };
 
     // ── Breakpoints panel ────────────────────────────────────────────────
-
-    var getBreakpointBlockLabel = function(blockId) {
-      var label = blockId;
-      try {
-        var ws = top.Blockly.common.getMainWorkspace();
-        if (ws) {
-          var block = ws.getBlockById(blockId);
-          if (block) {
-            var blockType = block.type || 'unknown';
-            if (block.type === 'component_event') {
-              var compSel = block.getFieldValue && block.getFieldValue('COMPONENT_SELECTOR');
-              label = (compSel || 'unknown') + '.' + (block.eventName || 'unknown') + ' event';
-            } else if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_defreturn') {
-              label = 'procedure "' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown') + '"';
-            } else if (block.type === 'procedures_callnoreturn' || block.type === 'procedures_callreturn') {
-              label = 'call "' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown') + '"';
-            } else if (block.type && block.type.indexOf('component_set_get') === 0) {
-              label = 'set ' + (block.instanceName || block.typeName || 'unknown') + '.' + (block.propertyName || 'unknown');
-            } else if (block.type && block.type.indexOf('component_method') === 0) {
-              label = (block.instanceName || block.typeName || 'unknown') + '.' + (block.methodName || 'unknown');
-            } else if (block.type && block.type.indexOf('component_') === 0) {
-              label = blockType.replace('component_', '').replace(/_/g, ' ') + ' ' + (block.instanceName || block.typeName || 'unknown');
-            } else {
-              label = blockType.replace(/_/g, ' ');
-            }
-          }
-        }
-      } catch (e) {}
-      return label;
-    };
 
     top.DebugPanel_addBreakpoint = function(blockId) {
       var container = top.document.getElementById('aiBreakpointsPanel');
@@ -504,37 +516,7 @@ public class DebugPanel extends VerticalPanel {
       };
       entry.appendChild(xBtn);
 
-      entry.onclick = function() {
-        try {
-          var ws = top.Blockly.common.getMainWorkspace();
-          if (ws) {
-            var warningHandler = ws.getWarningHandler();
-            if (warningHandler) {
-              if (ws.currentDebugHighlightTimeout) {
-                top.clearTimeout(ws.currentDebugHighlightTimeout);
-                ws.currentDebugHighlightTimeout = null;
-              }
-              if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
-                warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
-              }
-              ws.currentDebugCollapseStack = warningHandler.highlightBlock_(blockId);
-              ws.currentDebugBlockId = blockId;
-              ws.currentDebugHighlightTimeout = top.setTimeout(function() {
-                try {
-                  if (ws.currentDebugBlockId && ws.currentDebugCollapseStack) {
-                    warningHandler.unHighlightBlock_(ws.currentDebugBlockId, ws.currentDebugCollapseStack);
-                    ws.currentDebugBlockId = null;
-                    ws.currentDebugCollapseStack = null;
-                  }
-                } catch (e) {}
-                ws.currentDebugHighlightTimeout = null;
-              }, 3000);
-            }
-          }
-        } catch (e) {
-          console.error('Error highlighting block from breakpoints panel:', e);
-        }
-      };
+      entry.onclick = function() { highlightBlockTemporarily(blockId); };
       entry.onmouseover = function() { this.style.backgroundColor = '#fce4e4'; };
       entry.onmouseout  = function() { this.style.backgroundColor = ''; };
 

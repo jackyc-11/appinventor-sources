@@ -47,7 +47,15 @@ AI.Yail.component_event = function() {
     body = AI.Yail.YAIL_NULL;
   }
 
-  var wrappedBody = '(track-block "' + this.id + '" ' + body + ')'
+  var wrappedBody = '(if *this-is-the-repl* ' +
+      '(begin (StackFrame:pushFrame "' + this.id + '")' +
+      ' (try-catch' +
+      ' (let ((result (begin ' + body + '))) (StackFrame:popFrame) result)' +
+      ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
+      ' (primitive-throw exception))' +
+      ' (exception java.lang.Throwable' +
+      ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:setErrorPaused #t) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
+      ' (begin ' + body + '))';
 
   var code = preamble
     + AI.Yail.YAIL_OPEN_COMBINATION

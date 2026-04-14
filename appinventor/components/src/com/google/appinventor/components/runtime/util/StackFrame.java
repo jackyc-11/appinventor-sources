@@ -37,6 +37,14 @@ public class StackFrame implements Cloneable {
   private static final Condition pauseCondition = pauseLock.newCondition();
   private static String pausedBlockId = null;
 
+  private enum StepMode { NONE, STEP_INTO, STEP_OVER }
+  private static volatile StepMode stepMode = StepMode.NONE;
+  private static volatile boolean errorPaused = false;
+  private static volatile int capturedFrameDepth = 0;
+  private static volatile int capturedBlockDepth = 0;
+  private static volatile int stepTargetFrameDepth = 0;
+  private static volatile int stepTargetBlockDepth = 0;
+
   private Deque<String> blockIds;
   private Map<Symbol, Object> values;
 
@@ -129,8 +137,7 @@ public class StackFrame implements Cloneable {
   }
 
   public static StackFrame enter(String blockId) {
-    Log.d(LOG_TAG, "Entering block " + blockId);
-    checkBreakpoint(blockId);
+    checkPauseConditions(blockId);
     Deque<StackFrame> myFrames = frames.get();
     if (myFrames.isEmpty()) {
       myFrames.push(new StackFrame(blockId));
@@ -141,7 +148,6 @@ public class StackFrame implements Cloneable {
   }
 
   public static StackFrame exit(String blockId) {
-    Log.d(LOG_TAG, "Exiting block " + blockId);
     Deque<StackFrame> myFrames = frames.get();
     if (myFrames.isEmpty()) {
       Log.w(LOG_TAG, "Attempted to exit block " + blockId + " but no frames exist");
@@ -158,22 +164,41 @@ public class StackFrame implements Cloneable {
   }
 
   public static StackFrame pushFrame(String blockId) {
-    Log.d(LOG_TAG, "Pushing new frame for block id " + blockId);
-    checkBreakpoint(blockId);
+    if (debugMode && breakpoints.contains(blockId)) {
+      pauseAt(blockId);
+    }
     StackFrame newFrame = new StackFrame(blockId);
     frames.get().push(newFrame);
     return newFrame;
   }
 
   public static StackFrame popFrame() {
-    Log.d(LOG_TAG, "Popping stack frame");
     Deque<StackFrame> myFrames = frames.get();
-    return myFrames.isEmpty() ? null : myFrames.pop();
+    StackFrame popped = myFrames.isEmpty() ? null : myFrames.pop();
+    if (myFrames.isEmpty() && debugMode && stepMode != StepMode.NONE) {
+      stepMode = StepMode.NONE;
+      RetValManager.sendBreakpointHit("");
+    }
+    return popped;
   }
 
   public static void clear() {
-    Log.d(LOG_TAG, "Clearing all stack frames");
+    stepMode = StepMode.NONE;
     frames.get().clear();
+  }
+
+  public static void setErrorPaused(boolean value) {
+    errorPaused = value;
+  }
+
+  public static void clearErrorPaused() {
+    pauseLock.lock();
+    try {
+      errorPaused = false;
+      pauseCondition.signalAll();
+    } finally {
+      pauseLock.unlock();
+    }
   }
 
   public static void setBreakpoints(Set<String> newBreakpoints) {
@@ -209,6 +234,16 @@ public class StackFrame implements Cloneable {
     return debugMode;
   }
 
+  public static void setStepIntoMode() {
+    stepMode = StepMode.STEP_INTO;
+  }
+
+  public static void setStepOverMode() {
+    stepTargetFrameDepth = capturedFrameDepth;
+    stepTargetBlockDepth = capturedBlockDepth;
+    stepMode = StepMode.STEP_OVER;
+  }
+
   public static void continuePause() {
     pauseLock.lock();
     try {
@@ -223,6 +258,8 @@ public class StackFrame implements Cloneable {
   public static void stopExecution() {
     pauseLock.lock();
     try {
+      stepMode = StepMode.NONE;
+      errorPaused = false;
       if (paused) {
         stopRequested = true;
         paused = false;
@@ -243,6 +280,10 @@ public class StackFrame implements Cloneable {
   }
 
   private static void pauseAt(String blockId) {
+    Deque<StackFrame> myFrames = frames.get();
+    capturedFrameDepth = myFrames.size();
+    capturedBlockDepth = myFrames.isEmpty() ? 0 : myFrames.getFirst().blockIds.size();
+
     pauseLock.lock();
     try {
       paused = true;
@@ -265,30 +306,35 @@ public class StackFrame implements Cloneable {
     }
   }
 
-  private static void checkBreakpoint(String blockId) {
-    if (!debugMode || !breakpoints.contains(blockId)) {
-      return;
+  private static void checkPauseConditions(String blockId) {
+    if (!debugMode) return;
+    if (errorPaused) {
+      throw new DebugStopException();
     }
 
-    pauseLock.lock();
-    try {
-      paused = true;
-      pausedBlockId = blockId;
-      notifyBreakpointHit(blockId);
-      while (paused) {
-        try {
-          pauseCondition.await();
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          break;
-        }
+    boolean shouldPause = false;
+
+    if (stepMode == StepMode.STEP_INTO) {
+      stepMode = StepMode.NONE;
+      shouldPause = true;
+    } else if (stepMode == StepMode.STEP_OVER) {
+      Deque<StackFrame> myFrames = frames.get();
+      int frameDepth = myFrames.size();
+      int blockDepth = myFrames.isEmpty() ? 0 : myFrames.getFirst().blockIds.size();
+      boolean atOrShallower = frameDepth < stepTargetFrameDepth
+          || (frameDepth == stepTargetFrameDepth && blockDepth <= stepTargetBlockDepth);
+      if (atOrShallower) {
+        stepMode = StepMode.NONE;
+        shouldPause = true;
       }
-      if (stopRequested) {
-        stopRequested = false;
-        throw new DebugStopException();
-      }
-    } finally {
-      pauseLock.unlock();
+    }
+
+    if (breakpoints.contains(blockId)) {
+      shouldPause = true;
+    }
+
+    if (shouldPause) {
+      pauseAt(blockId);
     }
   }
 

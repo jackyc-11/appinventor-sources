@@ -14,13 +14,13 @@ goog.provide('AI.Yail.math');
 AI.Yail['math_number'] = function() {
   // Use Number() instead of parseFloat because it automatically
   // converts hex, binary, and octal to decimal.
-  var code = Number(this.getFieldValue('NUM'));
+  var code = String(Number(this.getFieldValue('NUM')));
   return [code, AI.Yail.ORDER_ATOMIC];
 };
 
 AI.Yail['math_number_radix'] = function() {
   var prefix = Blockly.Blocks.math_number_radix.PREFIX[this.getFieldValue('OP')];
-  var code = Number(prefix + this.getFieldValue('NUM'));
+  var code = String(Number(prefix + this.getFieldValue('NUM')));
   return [code, AI.Yail.ORDER_ATOMIC];
 };
 

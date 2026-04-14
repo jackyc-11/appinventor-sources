@@ -169,6 +169,6 @@ AI.Yail['local_variable'] = function(block,isExpression) {
   if(!isExpression){
     return code;
   } else {
-    return [ '(track-block "' + block.id + '" ' + code + ')', AI.Yail.ORDER_ATOMIC ];
+    return [ code, AI.Yail.ORDER_ATOMIC ];
   }
 };
