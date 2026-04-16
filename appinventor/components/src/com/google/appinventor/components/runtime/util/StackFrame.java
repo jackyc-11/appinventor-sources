@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +48,12 @@ public class StackFrame implements Cloneable {
 
   private Deque<String> blockIds;
   private Map<Symbol, Object> values;
+  private Map<String, Object> returnValues;
 
   public StackFrame(String blockId) {
     this.blockIds = new LinkedList<>();
     this.values = new HashMap<>();
+    this.returnValues = new HashMap<>();
     this.blockIds.add(blockId);
   }
 
@@ -93,6 +96,31 @@ public class StackFrame implements Cloneable {
     }
   }
 
+  public static void recordReturn(String procName, Object value) {
+    Iterator<StackFrame> it = frames.get().iterator();
+    if (!it.hasNext()) return;
+    it.next();
+    if (!it.hasNext()) return;
+    it.next().returnValues.put(procName, value);
+  }
+
+  private static String toDisplayValue(Object value) {
+    if (value == null) return "null";
+    try {
+      return JsonUtil.getJsonRepresentation(value);
+    } catch (JSONException e) {
+      return value.toString();
+    }
+  }
+
+  private JSONObject serializeMapToJson(Map<?, Object> map) throws JSONException {
+    JSONObject obj = new JSONObject();
+    for (Map.Entry<?, Object> entry : map.entrySet()) {
+      obj.put(entry.getKey().toString(), toDisplayValue(entry.getValue()));
+    }
+    return obj;
+  }
+
   public JSONObject toJson() throws JSONException {
     JSONObject result = new JSONObject();
 
@@ -103,23 +131,10 @@ public class StackFrame implements Cloneable {
     result.put("blockIds", blockIdsArray);
 
     if (!values.isEmpty()) {
-      JSONObject varsObject = new JSONObject();
-      for (Map.Entry<Symbol, Object> entry : values.entrySet()) {
-        String key = entry.getKey().toString();
-        Object value = entry.getValue();
-        String displayValue;
-        if (value == null) {
-          displayValue = "null";
-        } else {
-          try {
-            displayValue = JsonUtil.getJsonRepresentation(value);
-          } catch (JSONException e) {
-            displayValue = value.toString();
-          }
-        }
-        varsObject.put(key, displayValue);
-      }
-      result.put("vars", varsObject);
+      result.put("vars", serializeMapToJson(values));
+    }
+    if (!returnValues.isEmpty()) {
+      result.put("returnValues", serializeMapToJson(returnValues));
     }
     return result;
   }
@@ -129,6 +144,7 @@ public class StackFrame implements Cloneable {
     StackFrame copy = (StackFrame) super.clone();
     copy.blockIds = (LinkedList<String>) ((LinkedList<String>) blockIds).clone();
     copy.values = (HashMap<Symbol, Object>) ((HashMap<Symbol, Object>) values).clone();
+    copy.returnValues = (HashMap<String, Object>) ((HashMap<String, Object>) returnValues).clone();
     return copy;
   }
 
@@ -160,6 +176,10 @@ public class StackFrame implements Cloneable {
     if (topBlockId != null && !topBlockId.equals(blockId)) {
       Log.w(LOG_TAG, "Unexpected block id " + topBlockId + "; wanted to see: " + blockId);
     }
+    if (myFrames.size() == 1 && myFrames.getFirst().blockIds.isEmpty()) {
+      stepMode = StepMode.NONE;
+      myFrames.getFirst().returnValues.clear();
+    }
     return myFrames.isEmpty() ? null : myFrames.getFirst();
   }
 
@@ -167,8 +187,12 @@ public class StackFrame implements Cloneable {
     if (debugMode && breakpoints.contains(blockId)) {
       pauseAt(blockId);
     }
+    Deque<StackFrame> myFrames = frames.get();
     StackFrame newFrame = new StackFrame(blockId);
-    frames.get().push(newFrame);
+    if (!myFrames.isEmpty() && !myFrames.getFirst().returnValues.isEmpty()) {
+      newFrame.returnValues.putAll(myFrames.getFirst().returnValues);
+    }
+    myFrames.push(newFrame);
     return newFrame;
   }
 
@@ -177,7 +201,9 @@ public class StackFrame implements Cloneable {
     StackFrame popped = myFrames.isEmpty() ? null : myFrames.pop();
     if (myFrames.isEmpty() && debugMode && stepMode != StepMode.NONE) {
       stepMode = StepMode.NONE;
-      RetValManager.sendBreakpointHit("");
+      if (popped != null) {
+        RetValManager.sendBreakpointHit(popped.getBlockId());
+      }
     }
     return popped;
   }
@@ -322,7 +348,7 @@ public class StackFrame implements Cloneable {
       int frameDepth = myFrames.size();
       int blockDepth = myFrames.isEmpty() ? 0 : myFrames.getFirst().blockIds.size();
       boolean atOrShallower = frameDepth < stepTargetFrameDepth
-          || (frameDepth == stepTargetFrameDepth && blockDepth <= stepTargetBlockDepth);
+          || (frameDepth == stepTargetFrameDepth && blockDepth < stepTargetBlockDepth);
       if (atOrShallower) {
         stepMode = StepMode.NONE;
         shouldPause = true;

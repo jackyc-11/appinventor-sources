@@ -217,78 +217,62 @@ public class DebugPanel extends VerticalPanel {
       if (cs) cs.style.display = 'none';
     };
 
-    top.DebugPanel_setVariables = function(variables, globalVariables) {
+    top.DebugPanel_setVariables = function(variables, globalVariables, returnVariables) {
       var container = top.document.getElementById('aiVariablesPanel');
       if (!container) return;
       var doc = container.ownerDocument || top.document;
       container.innerHTML = '';
-      var hasVars = variables && Object.keys(variables).length > 0;
-      var hasGlobals = globalVariables && Object.keys(globalVariables).length > 0;
+      var makeVarEntry = function(name, value) {
+        var varEntry = doc.createElement('div');
+        varEntry.style.padding = '3px 5px';
+        varEntry.style.fontFamily = 'monospace';
+        varEntry.style.fontSize = '0.95em';
+        varEntry.style.borderBottom = '1px solid #eee';
+        var nameSpan = doc.createElement('span');
+        nameSpan.innerText = name;
+        var valueSpan = doc.createElement('span');
+        valueSpan.innerText = ' = ' + value;
+        varEntry.appendChild(nameSpan);
+        varEntry.appendChild(valueSpan);
+        return varEntry;
+      };
 
-      var localsSection = doc.createElement('div');
-      localsSection.style.padding = '5px';
-      localsSection.style.fontWeight = 'bold';
-      localsSection.innerText = 'Locals';
-      localsSection.style.borderBottom = '1px solid #ddd';
-      container.appendChild(localsSection);
-      var localsContent = doc.createElement('div');
-      localsContent.style.paddingLeft = '15px';
-      if (!hasVars) {
-        localsContent.style.color = '#999';
-        localsContent.style.padding = '5px';
-        localsContent.innerText = '(No local variables)';
-      } else {
-        for (var varName in variables) {
-          if (variables.hasOwnProperty(varName)) {
-            var varEntry = doc.createElement('div');
-            varEntry.style.padding = '3px 5px';
-            varEntry.style.fontFamily = 'monospace';
-            varEntry.style.fontSize = '0.95em';
-            varEntry.style.borderBottom = '1px solid #eee';
-            var nameSpan = doc.createElement('span');
-            nameSpan.innerText = varName;
-            var valueSpan = doc.createElement('span');
-            valueSpan.innerText = ' = ' + variables[varName];
-            varEntry.appendChild(nameSpan);
-            varEntry.appendChild(valueSpan);
-            localsContent.appendChild(varEntry);
+      var makeSectionHeader = function(label) {
+        var section = doc.createElement('div');
+        section.style.padding = '5px';
+        section.style.fontWeight = 'bold';
+        section.innerText = label;
+        section.style.borderBottom = '1px solid #ddd';
+        return section;
+      };
+
+      var makeEmptyMsg = function(msg) {
+        var content = doc.createElement('div');
+        content.style.color = '#999';
+        content.style.padding = '5px';
+        content.innerText = msg;
+        return content;
+      };
+
+      var renderSection = function(label, vars, emptyMsg, marginTop) {
+        var header = makeSectionHeader(label);
+        if (marginTop) header.style.marginTop = marginTop;
+        container.appendChild(header);
+        var content = doc.createElement('div');
+        content.style.paddingLeft = '15px';
+        if (!vars || Object.keys(vars).length === 0) {
+          content.appendChild(makeEmptyMsg(emptyMsg));
+        } else {
+          for (var k in vars) {
+            if (vars.hasOwnProperty(k)) content.appendChild(makeVarEntry(k, vars[k]));
           }
         }
-      }
-      container.appendChild(localsContent);
+        container.appendChild(content);
+      };
 
-      var globalsSection = doc.createElement('div');
-      globalsSection.style.padding = '5px';
-      globalsSection.style.fontWeight = 'bold';
-      globalsSection.innerText = 'Globals';
-      globalsSection.style.borderBottom = '1px solid #ddd';
-      globalsSection.style.marginTop = '10px';
-      container.appendChild(globalsSection);
-      var globalsContent = doc.createElement('div');
-      globalsContent.style.paddingLeft = '15px';
-      if (!hasGlobals) {
-        globalsContent.style.color = '#999';
-        globalsContent.style.padding = '5px';
-        globalsContent.innerText = '(No global variables tracked)';
-      } else {
-        for (var globalName in globalVariables) {
-          if (globalVariables.hasOwnProperty(globalName)) {
-            var globalEntry = doc.createElement('div');
-            globalEntry.style.padding = '3px 5px';
-            globalEntry.style.fontFamily = 'monospace';
-            globalEntry.style.fontSize = '0.95em';
-            globalEntry.style.borderBottom = '1px solid #eee';
-            var nameSpan = doc.createElement('span');
-            nameSpan.innerText = globalName;
-            var valueSpan = doc.createElement('span');
-            valueSpan.innerText = ' = ' + globalVariables[globalName];
-            globalEntry.appendChild(nameSpan);
-            globalEntry.appendChild(valueSpan);
-            globalsContent.appendChild(globalEntry);
-          }
-        }
-      }
-      container.appendChild(globalsContent);
+      renderSection('Locals', variables, '(No local variables)', null);
+      renderSection('Return', returnVariables, '(No return values)', '10px');
+      renderSection('Globals', globalVariables, '(No global variables tracked)', '10px');
     };
 
     var getBreakpointBlockLabel = function(blockId) {
@@ -394,6 +378,7 @@ public class DebugPanel extends VerticalPanel {
         if (frame.blockIds && frame.blockIds.length > 0) {
           var blockId = frame.blockIds[frame.blockIds.length - 1];
           var frameLocals = (frame.vars && typeof frame.vars === 'object') ? frame.vars : {};
+          var frameReturnVals = (frame.returnValues && typeof frame.returnValues === 'object') ? frame.returnValues : {};
           var entry = doc.createElement('div');
           entry.style.padding = '5px 10px';
           entry.style.borderBottom = '1px solid #ddd';
@@ -401,16 +386,16 @@ public class DebugPanel extends VerticalPanel {
           entry.style.fontFamily = 'monospace';
           entry.innerText = getBreakpointBlockLabel(blockId);
           entry.setAttribute('data-block-id', blockId);
-          (function(bid, localsForFrame) {
+          (function(bid, localsForFrame, returnValsForFrame) {
             entry.onclick = function() {
               try {
-                top.DebugPanel_setVariables(localsForFrame, globalsForPanel);
+                top.DebugPanel_setVariables(localsForFrame, globalsForPanel, returnValsForFrame);
               } catch (eVars) {
                 console.error('Error updating variables for stack frame:', eVars);
               }
               highlightBlockTemporarily(bid);
             };
-          })(blockId, frameLocals);
+          })(blockId, frameLocals, frameReturnVals);
           entry.onmouseover = function() {
             this.style.backgroundColor = '#e0e0e0';
           };
@@ -422,7 +407,8 @@ public class DebugPanel extends VerticalPanel {
       }
 
       var innermostVars = (stackTrace.length > 0 && stackTrace[0].vars) ? stackTrace[0].vars : {};
-      top.DebugPanel_setVariables(innermostVars, globalsForPanel);
+      var innermostReturnVals = (stackTrace.length > 0 && stackTrace[0].returnValues) ? stackTrace[0].returnValues : {};
+      top.DebugPanel_setVariables(innermostVars, globalsForPanel, innermostReturnVals);
     };
 
     top.DebugPanel_clearCallStack = function() {
@@ -455,7 +441,7 @@ public class DebugPanel extends VerticalPanel {
         console.error('Error clearing highlight:', e);
       }
 
-      top.DebugPanel_setVariables({}, {});
+      top.DebugPanel_setVariables({}, {}, {});
     };
 
     // ── Breakpoints panel ────────────────────────────────────────────────

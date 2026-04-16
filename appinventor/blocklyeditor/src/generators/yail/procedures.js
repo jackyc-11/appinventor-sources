@@ -47,7 +47,7 @@ AI.Yail['procedures_defreturn'] = function() {
                      '(begin (StackFrame:pushFrame "' + this.id + '")' +
                      paramSetup +
                      ' (try-catch' +
-                     ' (let ((result ' + returnVal + ')) (StackFrame:popFrame) result)' +
+                     ' (let ((result ' + returnVal + ')) (StackFrame:recordReturn "' + this.getFieldValue('NAME') + '" result) (StackFrame:popFrame) result)' +
                      ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
                      ' (primitive-throw exception))' +
                      ' (exception java.lang.Throwable' +
