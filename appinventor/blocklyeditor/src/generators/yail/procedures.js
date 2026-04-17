@@ -49,7 +49,7 @@ AI.Yail['procedures_defreturn'] = function() {
                      ' (try-catch' +
                      ' (let ((result ' + returnVal + ')) (StackFrame:recordReturn "' + this.getFieldValue('NAME') + '" result) (StackFrame:popFrame) result)' +
                      ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
-                     ' (primitive-throw exception))' +
+                     ' (begin (StackFrame:popFrame) (primitive-throw exception)))' +
                      ' (exception java.lang.Throwable' +
                      ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:setErrorPaused #t) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
                      ' ' + returnVal + ')';
@@ -76,7 +76,7 @@ AI.Yail['procedures_defnoreturn'] = function() {
                 ' (try-catch' +
                 ' (let ((result (begin ' + body + '))) (StackFrame:popFrame) result)' +
                 ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
-                ' (primitive-throw exception))' +
+                ' (begin (StackFrame:popFrame) (primitive-throw exception)))' +
                 ' (exception java.lang.Throwable' +
                 ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:setErrorPaused #t) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
                 ' (begin ' + body + '))';

@@ -66,39 +66,6 @@
               (primitive-throw exception))))))
       (begin code ...)))))
 
-;;; Macro to track procedure execution with parameter capture
-;;; Only active when running in REPL mode
-(define-syntax track-procedure
-  (syntax-rules ()
-    ((_ block-id param-names param-values code ...)
-     (if *this-is-the-repl*
-      (begin
-        (StackFrame:enter block-id)
-        ;; Store each parameter value in the stack frame
-        (let loop ((names param-names) (vals param-values))
-          (when (not (null? names))
-            (StackFrame:put (car names) (car vals))
-            (loop (cdr names) (cdr vals))))
-        (try-catch
-         (call-with-values
-          (lambda () (begin code ...))
-          (lambda track-result
-            (StackFrame:exit block-id)
-            (apply values track-result)))
-         (exception com.google.appinventor.components.runtime.errors.YailRuntimeError
-          (begin
-            (let ((wrapped (make WrappedException exception)))
-              (StackFrame:clear)
-              (RetValManager:sendErrorWithStackTrace wrapped)
-              (primitive-throw exception))))
-         (exception java.lang.Throwable
-          (begin
-            (let ((wrapped (make WrappedException exception)))
-              (StackFrame:clear)
-              (RetValManager:sendErrorWithStackTrace wrapped)
-              (primitive-throw exception))))))
-      (begin code ...)))))
-
 (define (yail-put-local name val)
   (StackFrame:put name val))
 

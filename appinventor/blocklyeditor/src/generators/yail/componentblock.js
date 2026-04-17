@@ -52,7 +52,7 @@ AI.Yail.component_event = function() {
       ' (try-catch' +
       ' (let ((result (begin ' + body + '))) (StackFrame:popFrame) result)' +
       ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
-      ' (primitive-throw exception))' +
+      ' (begin (StackFrame:clear) (primitive-throw exception)))' +
       ' (exception java.lang.Throwable' +
       ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:setErrorPaused #t) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
       ' (begin ' + body + '))';

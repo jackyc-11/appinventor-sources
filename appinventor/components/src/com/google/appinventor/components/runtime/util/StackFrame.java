@@ -5,6 +5,7 @@ import gnu.mapping.Symbol;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,8 +30,8 @@ public class StackFrame implements Cloneable {
   };
 
   // Breakpoint management
-  private static Set<String> breakpoints = new HashSet<>();
-  private static Set<String> exitBreakpoints = new HashSet<>();
+  private static Set<String> breakpoints = Collections.synchronizedSet(new HashSet<>());
+  private static Set<String> exitBreakpoints = Collections.synchronizedSet(new HashSet<>());
   private static volatile boolean debugMode = false;
   private static volatile boolean paused = false;
   private static volatile boolean stopRequested = false;
@@ -62,7 +63,7 @@ public class StackFrame implements Cloneable {
   }
 
   public List<String> getBlockIds() {
-    return (LinkedList<String>) blockIds;
+    return new LinkedList<>(blockIds);
   }
 
   public void push(String newBlockId) {
@@ -142,9 +143,9 @@ public class StackFrame implements Cloneable {
   @Override
   public Object clone() throws CloneNotSupportedException {
     StackFrame copy = (StackFrame) super.clone();
-    copy.blockIds = (LinkedList<String>) ((LinkedList<String>) blockIds).clone();
-    copy.values = (HashMap<Symbol, Object>) ((HashMap<Symbol, Object>) values).clone();
-    copy.returnValues = (HashMap<String, Object>) ((HashMap<String, Object>) returnValues).clone();
+    copy.blockIds = new LinkedList<>(blockIds);
+    copy.values = new HashMap<>(values);
+    copy.returnValues = new HashMap<>(returnValues);
     return copy;
   }
 
@@ -348,7 +349,7 @@ public class StackFrame implements Cloneable {
       int frameDepth = myFrames.size();
       int blockDepth = myFrames.isEmpty() ? 0 : myFrames.getFirst().blockIds.size();
       boolean atOrShallower = frameDepth < stepTargetFrameDepth
-          || (frameDepth == stepTargetFrameDepth && blockDepth < stepTargetBlockDepth);
+          || (frameDepth == stepTargetFrameDepth && blockDepth <= stepTargetBlockDepth);
       if (atOrShallower) {
         stepMode = StepMode.NONE;
         shouldPause = true;

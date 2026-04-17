@@ -3777,7 +3777,6 @@ Blockly.ReplMgr.qrcode = function() {
     return qrcode;
 }();
 
-// Track debugging state
 Blockly.ReplMgr.currentPausedBlockId = null;
 Blockly.ReplMgr.currentPausedStackDepth = 0;
 Blockly.ReplMgr.temporaryBreakpoints = new Set();
@@ -3814,7 +3813,6 @@ Blockly.ReplMgr.notifyBreakpointRemoved = function(blockId) {
     }
 };
 
-// Reset browser-side debugger UI and state.
 Blockly.ReplMgr.resetDebuggerUI = function() {
     var ws = Blockly.common.getMainWorkspace();
     if (ws) {
@@ -3836,12 +3834,7 @@ Blockly.ReplMgr.resetDebuggerUI = function() {
     }
 };
 
-Blockly.ReplMgr.enterErrorPausedState = function() {
-    Blockly.ReplMgr.isPausedOnError = true;
-    Blockly.ReplMgr.isSteppingOver = false;
-    Blockly.ReplMgr.isSteppingInto = false;
-    var clearWs = Blockly.common.getMainWorkspace();
-    var permanentSet = clearWs ? new Set(Blockly.BlocklyEditor.getBreakpoints(clearWs)) : new Set();
+Blockly.ReplMgr.clearTemporaryBreakpoints = function(permanentSet) {
     Blockly.ReplMgr.temporaryBreakpoints.forEach(function(blockId) {
         if (!permanentSet.has(blockId)) {
             Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + blockId + '"))');
@@ -3852,6 +3845,15 @@ Blockly.ReplMgr.enterErrorPausedState = function() {
         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeExitBreakpoint "' + blockId + '"))');
     });
     Blockly.ReplMgr.temporaryExitBreakpoints.clear();
+};
+
+Blockly.ReplMgr.enterErrorPausedState = function() {
+    Blockly.ReplMgr.isPausedOnError = true;
+    Blockly.ReplMgr.isSteppingOver = false;
+    Blockly.ReplMgr.isSteppingInto = false;
+    var clearWs = Blockly.common.getMainWorkspace();
+    var permanentSet = clearWs ? new Set(Blockly.BlocklyEditor.getBreakpoints(clearWs)) : new Set();
+    Blockly.ReplMgr.clearTemporaryBreakpoints(permanentSet);
     if (permanentSet.size > 0 && typeof top.DebugPanel_showDebugToolbar === 'function') {
         top.DebugPanel_showDebugToolbar();
     }
@@ -3866,17 +3868,11 @@ Blockly.ReplMgr.clearDebuggerState = function() {
     Blockly.ReplMgr.currentPausedStackDepth = 0;
     Blockly.ReplMgr.currentStackTrace = null;
     var clearWs = Blockly.common.getMainWorkspace();
+    if (clearWs) {
+        clearWs.highlightBlock(null);
+    }
     var permanentSet = clearWs ? new Set(Blockly.BlocklyEditor.getBreakpoints(clearWs)) : new Set();
-    Blockly.ReplMgr.temporaryBreakpoints.forEach(function(blockId) {
-        if (!permanentSet.has(blockId)) {
-            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + blockId + '"))');
-        }
-    });
-    Blockly.ReplMgr.temporaryBreakpoints.clear();
-    Blockly.ReplMgr.temporaryExitBreakpoints.forEach(function(blockId) {
-        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeExitBreakpoint "' + blockId + '"))');
-    });
-    Blockly.ReplMgr.temporaryExitBreakpoints.clear();
+    Blockly.ReplMgr.clearTemporaryBreakpoints(permanentSet);
     if (wasPausedOnError) {
         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearErrorPaused))');
     }
@@ -3889,6 +3885,7 @@ Blockly.ReplMgr.sendDebugContinue = function() {
     if (Blockly.ReplMgr.isPausedOnError) {
         Blockly.ReplMgr.clearDebuggerState();
         if (typeof top.DebugPanel_clearCallStack === 'function') top.DebugPanel_clearCallStack();
+        Blockly.ReplMgr.putYail('(com.google.appinventor.components.runtime.util.StackFrame:continuePause)');
         return;
     }
     var workspace = Blockly.common.getMainWorkspace();
@@ -3898,154 +3895,6 @@ Blockly.ReplMgr.sendDebugContinue = function() {
     Blockly.ReplMgr.clearDebuggerState();
     var yail = '(com.google.appinventor.components.runtime.util.StackFrame:continuePause)';
     Blockly.ReplMgr.putYail(yail);
-};
-
-// Helper function to find the next block to execute at the same or parent level
-Blockly.ReplMgr.findNextBlock = function(block) {
-    if (!block) return null;
-
-    // Check if there's a next block at the same level
-    if (block.nextConnection && block.nextConnection.targetBlock()) {
-        return block.nextConnection.targetBlock();
-    }
-
-    // No next block at this level - check if we're inside a parent block that has a next block
-    var parent = block.getSurroundParent ? block.getSurroundParent() : null;
-    if (parent) {
-        // Recursively check parent's next block
-        return Blockly.ReplMgr.findNextBlock(parent);
-    }
-
-    // No next block found - we're at the end of execution
-    return null;
-};
-
-// Helper function to find the first child block for step into
-// Returns the first child block in inputs, or null if none
-Blockly.ReplMgr.findFirstChildBlock = function(block) {
-    if (!block) return null;
-
-    // Look through all inputs to find the first child block
-    // Inputs are checked in order, so we'll get them in execution order
-    var inputs = block.inputList;
-    if (inputs) {
-        for (var i = 0; i < inputs.length; i++) {
-            var input = inputs[i];
-            // Check both value and statement inputs
-            if (input.connection && input.connection.targetBlock()) {
-                return input.connection.targetBlock();
-            }
-        }
-    }
-
-    return null;
-};
-
-// Helper function to find all child blocks (for step into)
-// Returns array of all blocks in inputs
-Blockly.ReplMgr.findAllChildBlocks = function(block) {
-    if (!block) return [];
-
-    var childBlocks = [];
-    var inputs = block.inputList;
-    if (inputs) {
-        for (var i = 0; i < inputs.length; i++) {
-            var input = inputs[i];
-            if (input.connection && input.connection.targetBlock()) {
-                var childBlock = input.connection.targetBlock();
-                childBlocks.push(childBlock);
-
-                // For statement inputs, get all blocks in the sequence
-                if (input.type === Blockly.NEXT_STATEMENT) {
-                    var nextBlock = childBlock;
-                    while (nextBlock.nextConnection && nextBlock.nextConnection.targetBlock()) {
-                        nextBlock = nextBlock.nextConnection.targetBlock();
-                        childBlocks.push(nextBlock);
-                    }
-                }
-            }
-        }
-    }
-
-    return childBlocks;
-};
-
-// Helper function to find all procedure call blocks recursively in a block tree
-Blockly.ReplMgr.findProcedureCallsInBlock = function(block, calls) {
-    if (!block) return;
-    if (!calls) calls = [];
-
-    // Check if this block is a procedure call
-    if (block.type === 'procedures_callnoreturn' || block.type === 'procedures_callreturn') {
-        calls.push(block);
-    }
-
-    // Recursively check all child blocks
-    var inputs = block.inputList;
-    if (inputs) {
-        for (var i = 0; i < inputs.length; i++) {
-            var input = inputs[i];
-            if (input.connection && input.connection.targetBlock()) {
-                Blockly.ReplMgr.findProcedureCallsInBlock(input.connection.targetBlock(), calls);
-            }
-        }
-    }
-
-    return calls;
-};
-
-// Helper function to get the entry point for a specific procedure by name
-Blockly.ReplMgr.getProcedureEntryPoint = function(procedureName) {
-    var workspace = Blockly.common.getMainWorkspace();
-    if (!workspace) return null;
-
-    // Use Blockly's built-in function to find the procedure definition
-    var procedureDef = Blockly.Procedures.getDefinition(procedureName, workspace);
-    if (!procedureDef) return null;
-
-    // For procedures that RETURN a value (procedures_defreturn):
-    // We've now modified the YAIL generator to wrap the return value block with track-block.
-    // So we return the return value block itself as the entry point.
-    if (procedureDef.type === 'procedures_defreturn') {
-        var inputs = procedureDef.inputList;
-        if (inputs) {
-            for (var j = 0; j < inputs.length; j++) {
-                var input = inputs[j];
-                if (input.name === 'RETURN' && input.connection && input.connection.targetBlock()) {
-                    // Return the actual return value block (like "get x")
-                    // It now has a track-block wrapper, so it's steppable
-                    return input.connection.targetBlock();
-                }
-            }
-        }
-        // If no RETURN input found, return the definition itself
-        return procedureDef;
-    }
-
-    // For procedures with NO return value (procedures_defnoreturn):
-    // The STACK input contains STATEMENT blocks, which do get track-block wrapping.
-    // So we return the first statement block inside the procedure.
-    var inputs = procedureDef.inputList;
-    if (inputs) {
-        for (var j = 0; j < inputs.length; j++) {
-            var input = inputs[j];
-            // Look for the STACK input which contains the procedure body
-            if (input.name === 'STACK' &&
-                input.connection &&
-                input.connection.targetBlock()) {
-                return input.connection.targetBlock();
-            }
-        }
-    }
-
-    // If no body blocks, return the definition itself
-    return procedureDef;
-};
-
-// Helper function to check if we've reached the end of execution
-Blockly.ReplMgr.isExecutionEnded = function(stacktrace) {
-    // Execution has ended if there's no stack trace or it's empty
-    return !stacktrace || stacktrace.length === 0;
 };
 
 Blockly.ReplMgr.sendDebugStepOver = function() {

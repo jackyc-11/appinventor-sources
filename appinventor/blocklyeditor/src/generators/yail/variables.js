@@ -156,7 +156,6 @@ AI.Yail['local_variable'] = function(block,isExpression) {
   if(isExpression){
     var returnExpr = !block.getInputTargetBlock("RETURN") ? "0"
         : AI.Yail.valueToCode(block, 'RETURN', AI.Yail.ORDER_NONE);
-    // Capture return value, remove locals, then return value
     code += AI.Yail.YAIL_SPACER + "(let ((*yail-local-result*"
         + " (begin" + stackFramePuts + " " + returnExpr + ")))"
         + stackFrameRemoves + " *yail-local-result*)";
