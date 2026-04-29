@@ -117,6 +117,20 @@ public class DebugPanel extends VerticalPanel {
     variablesDisclosure.getElement().getStyle().setProperty("display", "none");
     container.add(variablesDisclosure);
 
+    // Properties
+    FlowPanel propertiesPanel = new FlowPanel();
+    propertiesPanel.getElement().setId("aiPropertiesPanel");
+    propertiesPanel.getElement().getStyle().setOverflowY(Style.Overflow.AUTO);
+    propertiesPanel.getElement().getStyle().setProperty("backgroundColor", "#f9f9f9");
+    propertiesPanel.getElement().getStyle().setProperty("maxHeight", "300px");
+    DisclosurePanel propertiesDisclosure = new DisclosurePanel("Properties");
+    propertiesDisclosure.setContent(propertiesPanel);
+    propertiesDisclosure.setWidth("100%");
+    propertiesDisclosure.setOpen(true);
+    propertiesDisclosure.getElement().setId("aiPropertiesSection");
+    propertiesDisclosure.getElement().getStyle().setProperty("display", "none");
+    container.add(propertiesDisclosure);
+
     // Call Stack
     FlowPanel callStackPanel = new FlowPanel();
     callStackPanel.getElement().setId("aiCallStackPanel");
@@ -202,6 +216,8 @@ public class DebugPanel extends VerticalPanel {
       }
       var v = top.document.getElementById('aiVariablesSection');
       if (v) v.style.display = '';
+      var p = top.document.getElementById('aiPropertiesSection');
+      if (p) p.style.display = '';
       var cs = top.document.getElementById('aiCallStackSection');
       if (cs) cs.style.display = '';
     };
@@ -213,6 +229,8 @@ public class DebugPanel extends VerticalPanel {
       }
       var v = top.document.getElementById('aiVariablesSection');
       if (v) v.style.display = 'none';
+      var p = top.document.getElementById('aiPropertiesSection');
+      if (p) p.style.display = 'none';
       var cs = top.document.getElementById('aiCallStackSection');
       if (cs) cs.style.display = 'none';
     };
@@ -228,6 +246,8 @@ public class DebugPanel extends VerticalPanel {
         varEntry.style.fontFamily = 'monospace';
         varEntry.style.fontSize = '0.95em';
         varEntry.style.borderBottom = '1px solid #eee';
+        varEntry.style.wordBreak = 'break-all';
+        varEntry.style.overflowWrap = 'break-word';
         var nameSpan = doc.createElement('span');
         nameSpan.innerText = name;
         var valueSpan = doc.createElement('span');
@@ -272,7 +292,7 @@ public class DebugPanel extends VerticalPanel {
 
       renderSection('Locals', variables, '(No local variables)', null);
       renderSection('Return', returnVariables, '(No return values)', '10px');
-      renderSection('Globals', globalVariables, '(No global variables tracked)', '10px');
+      renderSection('Globals', globalVariables, '(No global variables)', '10px');
     };
 
     var getBreakpointBlockLabel = function(blockId) {
@@ -285,25 +305,36 @@ public class DebugPanel extends VerticalPanel {
         if (!block) {
           return blockId;
         }
-        var t = block.type || 'unknown';
+        var t = block.type;
         if (t === 'component_event') {
           var compSel = block.getFieldValue && block.getFieldValue('COMPONENT_SELECTOR');
-          return (compSel || 'unknown') + '.' + (block.eventName || 'unknown');
+          if (compSel) {
+            return compSel + '.' + block.eventName;
+          }
+          return 'any ' + block.typeName + '.' + block.eventName;
         }
         if (t === 'procedures_defnoreturn' || t === 'procedures_defreturn') {
-          return 'procedure "' + (block.getFieldValue && block.getFieldValue('NAME') || 'unknown') + '"';
+          return (block.getFieldValue && block.getFieldValue('NAME'));
         }
         if (t === 'procedures_callnoreturn' || t === 'procedures_callreturn') {
-          return 'call "' + (block.getFieldValue && block.getFieldValue('PROCNAME') || 'unknown') + '"';
+          return 'call ' + (block.getFieldValue && block.getFieldValue('PROCNAME'));
+        }
+        if (t === 'lexical_variable_get') {
+          var varName = block.getFieldValue && block.getFieldValue('VAR');
+          return 'get ' + (varName || 'variable');
+        }
+        if (t === 'lexical_variable_set') {
+          var varName = block.getFieldValue && block.getFieldValue('VAR');
+          return 'set ' + (varName || 'variable');
         }
         if (t.indexOf('component_set_get') === 0) {
-          return 'set ' + (block.instanceName || block.typeName || 'unknown') + '.' + (block.propertyName || 'unknown');
+          return block.setOrGet + ' ' + (block.instanceName || block.typeName) + '.' + block.propertyName;
         }
         if (t.indexOf('component_method') === 0) {
-          return (block.instanceName || block.typeName || 'unknown') + '.' + (block.methodName || 'unknown');
+          return (block.instanceName || block.typeName) + '.' + block.methodName;
         }
         if (t.indexOf('component_') === 0) {
-          return t.replace('component_', '').replace(/_/g, ' ') + ' ' + (block.instanceName || block.typeName || 'unknown');
+          return t.replace('component_', '').replace(/_/g, ' ') + ' ' + (block.instanceName || block.typeName);
         }
         return t.replace(/_/g, ' ');
       } catch (e) {

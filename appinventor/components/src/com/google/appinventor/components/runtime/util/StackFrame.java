@@ -1,6 +1,7 @@
 package com.google.appinventor.components.runtime.util;
 
 import android.util.Log;
+import com.google.appinventor.components.runtime.Component;
 import gnu.mapping.Symbol;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -107,6 +108,9 @@ public class StackFrame implements Cloneable {
 
   private static String toDisplayValue(Object value) {
     if (value == null) return "null";
+    if (value instanceof Component) {
+      return ((Component) value).Name();
+    }
     try {
       return JsonUtil.getJsonRepresentation(value);
     } catch (JSONException e) {

@@ -301,6 +301,15 @@ AI.Blockly.ContextMenuItems.registerAddBreakpointOption = function() {
       if (scope.block.workspace.isFlyout) {
         return 'hidden';
       }
+      if (scope.block.getRootBlock().type === 'global_declaration') {
+        return 'hidden';
+      }
+      var blockType = scope.block.type;
+      if (blockType === 'component_event' ||
+          blockType === 'procedures_defnoreturn' ||
+          blockType === 'procedures_defreturn') {
+        return 'hidden';
+      }
       return 'enabled';
     },
     weight: 100,
@@ -1164,6 +1173,13 @@ Blockly.BlocklyEditor['create'] = function(container, formName, readOnly, rtl) {
           field.setValue(field.getValue());
           block.queueRender();
         }
+        if (block.getRootBlock().type === 'global_declaration' && block.getIcon(AI.BreakpointIcon.TYPE)) {
+          block.removeIcon(AI.BreakpointIcon.TYPE);
+          Blockly.BlocklyEditor.saveBreakpoints(workspace);
+          if (Blockly.ReplMgr && Blockly.ReplMgr.notifyBreakpointRemoved) {
+            Blockly.ReplMgr.notifyBreakpointRemoved(block.id);
+          }
+        }
       });
     }
   });
@@ -1273,7 +1289,10 @@ Blockly.BlocklyEditor.restoreBreakpoints = function(workspace) {
   for (var i = 0; i < breakpoints.length; i++) {
     var blockId = breakpoints[i];
     var block = workspace.getBlockById(blockId);
-    if (block && !block.getIcon(AI.BreakpointIcon.TYPE)) {
+    if (block && !block.getIcon(AI.BreakpointIcon.TYPE) && block.getRootBlock().type !== 'global_declaration' &&
+        block.type !== 'component_event' &&
+        block.type !== 'procedures_defnoreturn' &&
+        block.type !== 'procedures_defreturn') {
       var icon = new AI.BreakpointIcon(block);
       block.addIcon(icon);
       if (typeof top.DebugPanel_addBreakpoint === 'function') {

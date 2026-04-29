@@ -555,34 +555,36 @@
          (let* ((handler-symbol (string->symbol (string-append "any$" (get-simple-name componentObject) "$" eventName)))
                 (handler (lookup-in-form-environment handler-symbol)))
            (if handler
-               (try-catch
-                (begin
-                  (apply handler (cons componentObject (cons notAlreadyHandled (gnu.lists.LList:makeList args 0))))
-                  #t)
-                (exception com.google.appinventor.components.runtime.errors.StopBlocksExecution
-                  #f)
-                (exception com.google.appinventor.components.runtime.errors.PermissionException
-                 (begin
-                   (exception:printStackTrace)
-                   ;; Test to see if the event we are handling is the
-                   ;; PermissionDenied of the current form. If so, then we will
-                   ;; need to avoid re-invoking PermissionDenied.
-                   (if (and (eq? (this) componentObject)
-                            (equal? eventName "PermissionNeeded"))
-                       ;; Error is occurring in the PermissionDenied handler, so we
-                       ;; use the more general exception handler to prevent going
-                       ;; into an infinite loop.
-                       (process-exception exception)
-                       ((this):PermissionDenied componentObject eventName
-                        (exception:getPermissionNeeded)))
-                   #f))
-                (exception java.lang.Throwable
-                 (begin
-                   (android-log-form (exception:getMessage))
+               (com.google.appinventor.components.runtime.BlocksThread:runOnBlocksThreadAsync
+                (lambda ()
+                  (try-catch
+                   (begin
+                     (apply handler (cons componentObject (cons notAlreadyHandled (gnu.lists.LList:makeList args 0))))
+                     #t)
+                   (exception com.google.appinventor.components.runtime.errors.StopBlocksExecution
+                     #f)
+                   (exception com.google.appinventor.components.runtime.errors.PermissionException
+                    (begin
+                      (exception:printStackTrace)
+                      ;; Test to see if the event we are handling is the
+                      ;; PermissionDenied of the current form. If so, then we will
+                      ;; need to avoid re-invoking PermissionDenied.
+                      (if (and (eq? (this) componentObject)
+                               (equal? eventName "PermissionNeeded"))
+                          ;; Error is occurring in the PermissionDenied handler, so we
+                          ;; use the more general exception handler to prevent going
+                          ;; into an infinite loop.
+                          (process-exception exception)
+                          ((this):PermissionDenied componentObject eventName
+                           (exception:getPermissionNeeded)))
+                      #f))
+                   (exception java.lang.Throwable
+                    (begin
+                      (android-log-form (exception:getMessage))
 ;;; Comment out the line below to inhibit a stack trace on a RunTimeError
-                   (exception:printStackTrace)
-                   (process-exception exception)
-                   #f))))))
+                      (exception:printStackTrace)
+                      (process-exception exception)
+                      #f))))))))
 
        (define (lookup-handler componentName eventName)
          (lookup-in-form-environment

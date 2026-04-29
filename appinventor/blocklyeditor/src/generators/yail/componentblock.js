@@ -47,10 +47,17 @@ AI.Yail.component_event = function() {
     body = AI.Yail.YAIL_NULL;
   }
 
+  var params = this.getParameters();
+  var displayNames = params.map(function(p) { return p.name; });
+  var localNames = params.map(function(p) { return AI.Yail.YAIL_LOCAL_VAR_TAG + p.name; });
+  var trackedBody = params.length > 0
+      ? AI.Yail.wrapBodyWithLocalTracking(displayNames, localNames, body)
+      : body;
+
   var wrappedBody = '(if *this-is-the-repl* ' +
       '(begin (StackFrame:pushFrame "' + this.id + '")' +
       ' (try-catch' +
-      ' (let ((result (begin ' + body + '))) (StackFrame:popFrame) result)' +
+      ' (let ((result (begin ' + trackedBody + '))) (StackFrame:popFrame) result)' +
       ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
       ' (begin (StackFrame:clear) (primitive-throw exception)))' +
       ' (exception java.lang.Throwable' +
@@ -65,7 +72,7 @@ AI.Yail.component_event = function() {
     //       .map(function (name) {return AI.Yail.YAIL_LOCAL_VAR_TAG+name;})
     //       .join(' ')
     // So we do this instead:
-    + this.getParameters()
+    + params
           .map(function (param) {return AI.Yail.YAIL_LOCAL_VAR_TAG+param.name;})
           .join(' ')
     + AI.Yail.YAIL_CLOSE_COMBINATION
