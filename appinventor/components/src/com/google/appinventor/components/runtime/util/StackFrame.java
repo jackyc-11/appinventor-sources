@@ -33,6 +33,8 @@ public class StackFrame implements Cloneable {
   private static final Map<String, Map<String, String>> componentProperties =
       new java.util.concurrent.ConcurrentHashMap<>();
 
+  private static volatile boolean isInEventHandler = false;
+
   // Breakpoint management
   private static Set<String> breakpoints = Collections.synchronizedSet(new HashSet<>());
   private static Set<String> exitBreakpoints = Collections.synchronizedSet(new HashSet<>());
@@ -157,6 +159,7 @@ public class StackFrame implements Cloneable {
   }
 
   public static void setComponentProperty(String compName, String propName, Object value) {
+    if (!isInEventHandler) return;
     Map<String, String> compProps = componentProperties.computeIfAbsent(
         compName, k -> new java.util.concurrent.ConcurrentHashMap<>());
     compProps.put(propName, value == null ? "null" : value.toString());
@@ -214,6 +217,7 @@ public class StackFrame implements Cloneable {
   }
 
   public static StackFrame pushFrame(String blockId) {
+    isInEventHandler = true;
     if (debugMode && breakpoints.contains(blockId)) {
       pauseAt(blockId);
     }
@@ -229,6 +233,9 @@ public class StackFrame implements Cloneable {
   public static StackFrame popFrame() {
     Deque<StackFrame> myFrames = frames.get();
     StackFrame popped = myFrames.isEmpty() ? null : myFrames.pop();
+    if (myFrames.isEmpty()) {
+      isInEventHandler = false;
+    }
     if (myFrames.isEmpty() && debugMode && stepMode != StepMode.NONE) {
       stepMode = StepMode.NONE;
       if (popped != null) {

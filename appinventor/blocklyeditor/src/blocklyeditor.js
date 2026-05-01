@@ -67,19 +67,22 @@ Blockly.configForTypeBlock = {
 Blockly.BlocklyEditor.HELP_IFRAME = null;
 
 Blockly.BlocklyEditor.designerProperties = {};
+Blockly.BlocklyEditor.designerComponentOrder = [];
 
 Blockly.BlocklyEditor.setDesignerProperties = function(designerJson) {
   var result = {};
+  var order = [];
   try {
     var root = JSON.parse(designerJson);
-    Blockly.BlocklyEditor.collectDesignerProps(root['Properties'], result);
+    Blockly.BlocklyEditor.collectDesignerProps(root['Properties'], result, order);
   } catch (e) {
     console.error('BlocklyEditor.setDesignerProperties: failed to parse designer JSON', e);
   }
   Blockly.BlocklyEditor.designerProperties = result;
+  Blockly.BlocklyEditor.designerComponentOrder = order;
 };
 
-Blockly.BlocklyEditor.collectDesignerProps = function(component, out) {
+Blockly.BlocklyEditor.collectDesignerProps = function(component, out, order) {
   var name = component['$Name'];
   if (name) {
     var props = {};
@@ -89,11 +92,12 @@ Blockly.BlocklyEditor.collectDesignerProps = function(component, out) {
       }
     }
     out[name] = props;
+    if (order) order.push(name);
   }
   var children = component['$Components'];
   if (children && children.length) {
     for (var i = 0; i < children.length; i++) {
-      Blockly.BlocklyEditor.collectDesignerProps(children[i], out);
+      Blockly.BlocklyEditor.collectDesignerProps(children[i], out, order);
     }
   }
 };

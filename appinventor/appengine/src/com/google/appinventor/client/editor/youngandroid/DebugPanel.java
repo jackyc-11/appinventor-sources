@@ -324,21 +324,36 @@ public class DebugPanel extends VerticalPanel {
           ? (top.Blockly.BlocklyEditor.designerProperties || {})
           : {};
 
+      var db = null;
+      try {
+        var ws = top.Blockly.common.getMainWorkspace();
+        if (ws) db = ws.getComponentDatabase();
+      } catch (e) {}
+
       var filtered = {};
       for (var compName in componentProperties) {
         if (!componentProperties.hasOwnProperty(compName)) continue;
         var runtimeProps = componentProperties[compName];
         if (!runtimeProps) continue;
         var designerCompProps = designerProps[compName] || {};
+        var instance = db && db.getInstance(compName);
         var diffProps = {};
         for (var propName in runtimeProps) {
           if (!runtimeProps.hasOwnProperty(propName)) continue;
           var runtimeVal = String(runtimeProps[propName]);
           var designerVal = designerCompProps.hasOwnProperty(propName)
               ? String(designerCompProps[propName]) : null;
-          if (designerVal === null || runtimeVal.toLowerCase() !== designerVal.toLowerCase()) {
+          if (designerVal === null) {
             diffProps[propName] = runtimeProps[propName];
+            continue;
           }
+          var propDesc = instance && db.getPropertyForType(instance.typeName, propName);
+          if (propDesc && propDesc.editorType === 'color') {
+            if ((parseInt(runtimeVal, 10) | 0) === (parseInt(designerVal, 10) | 0)) continue;
+          } else {
+            if (runtimeVal.toLowerCase() === designerVal.toLowerCase()) continue;
+          }
+          diffProps[propName] = runtimeProps[propName];
         }
         if (Object.keys(diffProps).length > 0) {
           filtered[compName] = diffProps;
@@ -353,7 +368,11 @@ public class DebugPanel extends VerticalPanel {
         return;
       }
 
-      var designerOrder = Object.keys(designerProps);
+      var designerOrder = (top.Blockly && top.Blockly.BlocklyEditor &&
+          top.Blockly.BlocklyEditor.designerComponentOrder &&
+          top.Blockly.BlocklyEditor.designerComponentOrder.length > 0)
+          ? top.Blockly.BlocklyEditor.designerComponentOrder
+          : Object.keys(designerProps);
       var compNames = Object.keys(componentProperties);
       compNames.sort(function(a, b) {
         var idxA = designerOrder.indexOf(a);
