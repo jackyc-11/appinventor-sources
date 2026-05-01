@@ -193,6 +193,7 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             this.putYail(code);
             this.putYail(AI.Yail.YAIL_INIT_RUNTIME);
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clear))');
+            this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearComponentProperties))');
 
             var breakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
             if (breakpoints.length > 0) {
@@ -1192,6 +1193,9 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                     var globalVars = r.globals || {};
                     top.DebugPanel_setCallStack(r.stacktrace, null, globalVars, true);
                 }
+                if (typeof top.DebugPanel_setProperties === 'function') {
+                    top.DebugPanel_setProperties(r.componentProperties || {});
+                }
                 var breakpointBlock = Blockly.common.getMainWorkspace().getBlockById(r.blockid);
                 if (breakpointBlock) {
                     Blockly.common.getMainWorkspace().highlightBlock(r.blockid);
@@ -1215,6 +1219,9 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                 if (typeof top.DebugPanel_clearCallStack === 'function') {
                     top.DebugPanel_clearCallStack();
                 }
+                if (typeof top.DebugPanel_setProperties === 'function') {
+                    top.DebugPanel_setProperties({});
+                }
             }
             break;
         case "error":
@@ -1224,6 +1231,9 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                 if (typeof top.DebugPanel_setCallStack === 'function') {
                     var globalVars = r.globals || {};
                     top.DebugPanel_setCallStack(r.stacktrace, r.value, globalVars, false);
+                }
+                if (typeof top.DebugPanel_setProperties === 'function') {
+                    top.DebugPanel_setProperties(r.componentProperties || {});
                 }
                 var errWs = Blockly.common.getMainWorkspace();
                 var hasBreakpoints = errWs && Blockly.BlocklyEditor.getBreakpoints(errWs).length > 0;

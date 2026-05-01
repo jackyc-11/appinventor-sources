@@ -66,6 +66,38 @@ Blockly.configForTypeBlock = {
 
 Blockly.BlocklyEditor.HELP_IFRAME = null;
 
+Blockly.BlocklyEditor.designerProperties = {};
+
+Blockly.BlocklyEditor.setDesignerProperties = function(designerJson) {
+  var result = {};
+  try {
+    var root = JSON.parse(designerJson);
+    Blockly.BlocklyEditor.collectDesignerProps(root['Properties'], result);
+  } catch (e) {
+    console.error('BlocklyEditor.setDesignerProperties: failed to parse designer JSON', e);
+  }
+  Blockly.BlocklyEditor.designerProperties = result;
+};
+
+Blockly.BlocklyEditor.collectDesignerProps = function(component, out) {
+  var name = component['$Name'];
+  if (name) {
+    var props = {};
+    for (var key in component) {
+      if (component.hasOwnProperty(key) && key.charAt(0) !== '$') {
+        props[key] = String(component[key]);
+      }
+    }
+    out[name] = props;
+  }
+  var children = component['$Components'];
+  if (children && children.length) {
+    for (var i = 0; i < children.length; i++) {
+      Blockly.BlocklyEditor.collectDesignerProps(children[i], out);
+    }
+  }
+};
+
 top.addEventListener('mousedown', function(e) {
   if (e.target.tagName === 'IMG' &&
       e.target.parentElement.tagName === 'A' &&

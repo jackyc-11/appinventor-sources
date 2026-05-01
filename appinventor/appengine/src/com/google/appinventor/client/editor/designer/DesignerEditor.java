@@ -190,6 +190,11 @@ public abstract class DesignerEditor<S extends SourceNode, T extends MockDesigne
   }
 
   public abstract String getJson();
+
+  public String getJsonWithAllProperties() {
+    return getJson();
+  }
+
   protected abstract T newRootObject();
 
   protected abstract void upgradeFile(FileContentHolder fileContentHolder,
@@ -776,6 +781,10 @@ public abstract class DesignerEditor<S extends SourceNode, T extends MockDesigne
    * Encodes a component and its properties into a JSON encoded string.
    */
   protected void encodeComponentProperties(MockComponent component, StringBuilder sb, boolean forYail) {
+    encodeComponentProperties(component, sb, forYail, false);
+  }
+
+  protected void encodeComponentProperties(MockComponent component, StringBuilder sb, boolean forYail, boolean includeAll) {
     // The component encoding starts with component name and type
     String componentType = component.getType();
     EditableProperties properties = component.getProperties();
@@ -790,7 +799,7 @@ public abstract class DesignerEditor<S extends SourceNode, T extends MockDesigne
     // Next the actual component properties
     //
     // NOTE: It is important that these be encoded before any children components.
-    String propertiesString = properties.encodeAsPairs(forYail);
+    String propertiesString = includeAll ? properties.encodeAllAsPairs() : properties.encodeAsPairs(forYail);
     if (propertiesString.length() > 0) {
       sb.append(',');
       sb.append(propertiesString);
@@ -803,7 +812,7 @@ public abstract class DesignerEditor<S extends SourceNode, T extends MockDesigne
       String separator = "";
       for (MockComponent child : children) {
         sb.append(separator);
-        encodeComponentProperties(child, sb, forYail);
+        encodeComponentProperties(child, sb, forYail, includeAll);
         separator = ",";
       }
       sb.append(']');

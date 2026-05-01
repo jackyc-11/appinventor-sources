@@ -765,6 +765,10 @@ AI.Yail.blockToCode1 = function(block) {
  * @returns {string}
  */
 AI.Yail.disabledEventBlockToCode = function(block) {
+  if (block.isGeneric) {
+    var handlerSymbol = 'any$' + block.typeName + '$' + block.eventName;
+    return '(add-to-current-form-environment \'' + handlerSymbol + ' #f)\n';
+  }
   return AI.Yail.YAIL_OPEN_BLOCK + AI.Yail.YAIL_UNREGISTER + AI.Yail.YAIL_SPACER +
     AI.Yail.YAIL_ACTIVE_FORM + AI.Yail.YAIL_SPACER +
     AI.Yail.YAIL_QUOTE + block.getFieldValue('COMPONENT_SELECTOR') +

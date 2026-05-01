@@ -127,6 +127,7 @@ public class RetValManager {
         retval.put("value", e.getMessage());
         retval.put("stacktrace", toStackTrace(e));
         retval.put("globals", getGlobalVariables());
+        retval.put("componentProperties", StackFrame.getComponentPropertiesJson());
       } catch (JSONException ex) {
         Log.e(LOG_TAG, "Error building retval with stack trace", ex);
         return;
@@ -210,6 +211,7 @@ public class RetValManager {
         }
         retval.put("stacktrace", stackTrace);
         retval.put("globals", getGlobalVariables());
+        retval.put("componentProperties", StackFrame.getComponentPropertiesJson());
       } catch (JSONException ex) {
         Log.e(LOG_TAG, "Error building breakpoint notification", ex);
         return;

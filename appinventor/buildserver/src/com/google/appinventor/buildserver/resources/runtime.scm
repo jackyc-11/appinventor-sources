@@ -1477,7 +1477,10 @@
         (BlocksThread:runOnUiThreadSync
           (lambda ()
             (try-catch
-             (invoke comp prop-name coerced-arg)
+             (begin
+               (invoke comp prop-name coerced-arg)
+               (when *this-is-the-repl*
+                 (StackFrame:setComponentProperty (*:Name comp) (symbol->string prop-name) coerced-arg)))
              (exception PermissionException
                         (*:dispatchPermissionDeniedEvent (SimpleForm:getActiveForm) comp prop-name exception)))))
         (generate-runtime-type-error prop-name (list property-value)))))

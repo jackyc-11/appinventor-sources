@@ -492,6 +492,21 @@ public final class YaFormEditor extends DesignerEditor<YoungAndroidFormNode, Moc
   }
 
   @Override
+  public String getJsonWithAllProperties() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{");
+    if (authURL != null) {
+      sb.append("\"authURL\":").append(authURL.toJson()).append(",");
+    }
+    sb.append("\"YaVersion\":\"").append(YaVersion.YOUNG_ANDROID_VERSION).append("\",");
+    sb.append("\"Source\":\"Form\",");
+    sb.append("\"Properties\":");
+    encodeComponentProperties(root, sb, false, true);
+    sb.append("}");
+    return sb.toString();
+  }
+
+  @Override
   protected MockForm newRootObject() {
     return new MockForm(this);
   }

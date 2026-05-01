@@ -114,6 +114,7 @@ public class DebugPanel extends VerticalPanel {
     variablesDisclosure.setWidth("100%");
     variablesDisclosure.setOpen(true);
     variablesDisclosure.getElement().setId("aiVariablesSection");
+    variablesDisclosure.getElement().getStyle().setProperty("border", "1px solid #ccc");
     variablesDisclosure.getElement().getStyle().setProperty("display", "none");
     container.add(variablesDisclosure);
 
@@ -128,6 +129,7 @@ public class DebugPanel extends VerticalPanel {
     propertiesDisclosure.setWidth("100%");
     propertiesDisclosure.setOpen(true);
     propertiesDisclosure.getElement().setId("aiPropertiesSection");
+    propertiesDisclosure.getElement().getStyle().setProperty("border", "1px solid #ccc");
     propertiesDisclosure.getElement().getStyle().setProperty("display", "none");
     container.add(propertiesDisclosure);
 
@@ -142,6 +144,7 @@ public class DebugPanel extends VerticalPanel {
     callStackDisclosure.setWidth("100%");
     callStackDisclosure.setOpen(true);
     callStackDisclosure.getElement().setId("aiCallStackSection");
+    callStackDisclosure.getElement().getStyle().setProperty("border", "1px solid #ccc");
     callStackDisclosure.getElement().getStyle().setProperty("display", "none");
     container.add(callStackDisclosure);
 
@@ -163,6 +166,7 @@ public class DebugPanel extends VerticalPanel {
     breakpointsDisclosure.setContent(breakpointsPanel);
     breakpointsDisclosure.setWidth("100%");
     breakpointsDisclosure.setOpen(true);
+    breakpointsDisclosure.getElement().getStyle().setProperty("border", "1px solid #ccc");
     container.add(breakpointsDisclosure);
 
     add(container);
@@ -235,56 +239,55 @@ public class DebugPanel extends VerticalPanel {
       if (cs) cs.style.display = 'none';
     };
 
+    var makeEntryRow = function(name, value) {
+      var entry = top.document.createElement('div');
+      entry.style.padding = '3px 5px';
+      entry.style.fontFamily = 'monospace';
+      entry.style.fontSize = '0.95em';
+      entry.style.borderBottom = '1px solid #eee';
+      entry.style.wordBreak = 'break-all';
+      entry.style.overflowWrap = 'break-word';
+      var nameSpan = top.document.createElement('span');
+      nameSpan.innerText = name;
+      var valueSpan = top.document.createElement('span');
+      valueSpan.innerText = ' = ' + value;
+      entry.appendChild(nameSpan);
+      entry.appendChild(valueSpan);
+      return entry;
+    };
+
+    var makeSectionHeader = function(label, marginTop) {
+      var section = top.document.createElement('div');
+      section.style.padding = '5px';
+      section.style.fontWeight = 'bold';
+      section.style.borderBottom = '1px solid #ddd';
+      if (marginTop) section.style.marginTop = marginTop;
+      section.innerText = label;
+      return section;
+    };
+
+    var makeEmptyMsg = function(msg) {
+      var content = top.document.createElement('div');
+      content.style.color = '#999';
+      content.style.padding = '5px';
+      content.innerText = msg;
+      return content;
+    };
+
     top.DebugPanel_setVariables = function(variables, globalVariables, returnVariables) {
       var container = top.document.getElementById('aiVariablesPanel');
       if (!container) return;
-      var doc = container.ownerDocument || top.document;
       container.innerHTML = '';
-      var makeVarEntry = function(name, value) {
-        var varEntry = doc.createElement('div');
-        varEntry.style.padding = '3px 5px';
-        varEntry.style.fontFamily = 'monospace';
-        varEntry.style.fontSize = '0.95em';
-        varEntry.style.borderBottom = '1px solid #eee';
-        varEntry.style.wordBreak = 'break-all';
-        varEntry.style.overflowWrap = 'break-word';
-        var nameSpan = doc.createElement('span');
-        nameSpan.innerText = name;
-        var valueSpan = doc.createElement('span');
-        valueSpan.innerText = ' = ' + value;
-        varEntry.appendChild(nameSpan);
-        varEntry.appendChild(valueSpan);
-        return varEntry;
-      };
-
-      var makeSectionHeader = function(label) {
-        var section = doc.createElement('div');
-        section.style.padding = '5px';
-        section.style.fontWeight = 'bold';
-        section.innerText = label;
-        section.style.borderBottom = '1px solid #ddd';
-        return section;
-      };
-
-      var makeEmptyMsg = function(msg) {
-        var content = doc.createElement('div');
-        content.style.color = '#999';
-        content.style.padding = '5px';
-        content.innerText = msg;
-        return content;
-      };
 
       var renderSection = function(label, vars, emptyMsg, marginTop) {
-        var header = makeSectionHeader(label);
-        if (marginTop) header.style.marginTop = marginTop;
-        container.appendChild(header);
-        var content = doc.createElement('div');
+        container.appendChild(makeSectionHeader(label, marginTop));
+        var content = top.document.createElement('div');
         content.style.paddingLeft = '15px';
         if (!vars || Object.keys(vars).length === 0) {
           content.appendChild(makeEmptyMsg(emptyMsg));
         } else {
           for (var k in vars) {
-            if (vars.hasOwnProperty(k)) content.appendChild(makeVarEntry(k, vars[k]));
+            if (vars.hasOwnProperty(k)) content.appendChild(makeEntryRow(k, vars[k]));
           }
         }
         container.appendChild(content);
@@ -293,6 +296,62 @@ public class DebugPanel extends VerticalPanel {
       renderSection('Locals', variables, '(No local variables)', null);
       renderSection('Return', returnVariables, '(No return values)', '10px');
       renderSection('Globals', globalVariables, '(No global variables)', '10px');
+    };
+
+    top.DebugPanel_setProperties = function(componentProperties) {
+      var container = top.document.getElementById('aiPropertiesPanel');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var designerProps = (top.Blockly && top.Blockly.BlocklyEditor)
+          ? (top.Blockly.BlocklyEditor.designerProperties || {})
+          : {};
+
+      var filtered = {};
+      for (var compName in componentProperties) {
+        if (!componentProperties.hasOwnProperty(compName)) continue;
+        var runtimeProps = componentProperties[compName];
+        if (!runtimeProps) continue;
+        var designerCompProps = designerProps[compName] || {};
+        var diffProps = {};
+        for (var propName in runtimeProps) {
+          if (!runtimeProps.hasOwnProperty(propName)) continue;
+          var runtimeVal = String(runtimeProps[propName]);
+          var designerVal = designerCompProps.hasOwnProperty(propName)
+              ? String(designerCompProps[propName]) : null;
+          if (designerVal === null || runtimeVal.toLowerCase() !== designerVal.toLowerCase()) {
+            diffProps[propName] = runtimeProps[propName];
+          }
+        }
+        if (Object.keys(diffProps).length > 0) {
+          filtered[compName] = diffProps;
+        }
+      }
+      componentProperties = filtered;
+
+      if (Object.keys(componentProperties).length === 0) {
+        var emptyMsg = makeEmptyMsg('(No modified properties)');
+        emptyMsg.style.fontStyle = 'italic';
+        container.appendChild(emptyMsg);
+        return;
+      }
+
+      var first = true;
+      for (var compName in componentProperties) {
+        if (!componentProperties.hasOwnProperty(compName)) continue;
+        var props = componentProperties[compName];
+        if (!props || Object.keys(props).length === 0) continue;
+        container.appendChild(makeSectionHeader(compName, first ? null : '10px'));
+        first = false;
+        var propsDiv = top.document.createElement('div');
+        propsDiv.style.paddingLeft = '15px';
+        for (var propName in props) {
+          if (props.hasOwnProperty(propName)) {
+            propsDiv.appendChild(makeEntryRow(propName, props[propName]));
+          }
+        }
+        container.appendChild(propsDiv);
+      }
     };
 
     var getBreakpointBlockLabel = function(blockId) {

@@ -252,6 +252,7 @@ public abstract class BlocksEditor<S extends SourceNode, T extends DesignerEdito
         }
         loadComplete = true;
         selectedDrawer = null;
+        if (designer != null) sendDesignerProperties(designer.getJsonWithAllProperties());
         if (afterFileLoaded != null) {
           afterFileLoaded.execute();
         }
@@ -385,7 +386,9 @@ public abstract class BlocksEditor<S extends SourceNode, T extends DesignerEdito
   // Note: our companion designer adds us as a listener on the form
   @Override
   public void onComponentPropertyChanged(MockComponent component, String propertyName, String propertyValue) {
-    // nothing to do here
+    if (loadComplete && designer != null) {
+      sendDesignerProperties(designer.getJsonWithAllProperties());
+    }
   }
 
   @Override
@@ -394,6 +397,7 @@ public abstract class BlocksEditor<S extends SourceNode, T extends DesignerEdito
       removeComponent(component.getType(), component.getName(), component.getUuid());
       if (loadComplete) {
         updateSourceStructureExplorer();
+        if (designer != null) sendDesignerProperties(designer.getJsonWithAllProperties());
       }
     }
   }
@@ -402,8 +406,8 @@ public abstract class BlocksEditor<S extends SourceNode, T extends DesignerEdito
   public void onComponentAdded(MockComponent component) {
     addComponent(component.getType(), component.getName(), component.getUuid());
     if (loadComplete) {
-      // Update source structure panel
       updateSourceStructureExplorer();
+      if (designer != null) sendDesignerProperties(designer.getJsonWithAllProperties());
     }
   }
 
@@ -476,6 +480,13 @@ public abstract class BlocksEditor<S extends SourceNode, T extends DesignerEdito
       editor.blocksArea.toggleWarning();
     }
   }
+
+  private static native void sendDesignerProperties(String designerJson) /*-{
+    if (top.Blockly && top.Blockly.BlocklyEditor &&
+        typeof top.Blockly.BlocklyEditor.setDesignerProperties === 'function') {
+      top.Blockly.BlocklyEditor.setDesignerProperties(designerJson);
+    }
+  }-*/;
 
   private static native void set(JavaScriptObject jso, String key, String value)/*-{
     jso[key] = value;

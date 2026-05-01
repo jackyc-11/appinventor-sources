@@ -30,6 +30,9 @@ public class StackFrame implements Cloneable {
     }
   };
 
+  private static final Map<String, Map<String, String>> componentProperties =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
   // Breakpoint management
   private static Set<String> breakpoints = Collections.synchronizedSet(new HashSet<>());
   private static Set<String> exitBreakpoints = Collections.synchronizedSet(new HashSet<>());
@@ -151,6 +154,28 @@ public class StackFrame implements Cloneable {
     copy.values = new HashMap<>(values);
     copy.returnValues = new HashMap<>(returnValues);
     return copy;
+  }
+
+  public static void setComponentProperty(String compName, String propName, Object value) {
+    Map<String, String> compProps = componentProperties.computeIfAbsent(
+        compName, k -> new java.util.concurrent.ConcurrentHashMap<>());
+    compProps.put(propName, value == null ? "null" : value.toString());
+  }
+
+  public static void clearComponentProperties() {
+    componentProperties.clear();
+  }
+
+  public static JSONObject getComponentPropertiesJson() throws JSONException {
+    JSONObject result = new JSONObject();
+    for (Map.Entry<String, Map<String, String>> compEntry : componentProperties.entrySet()) {
+      JSONObject compProps = new JSONObject();
+      for (Map.Entry<String, String> propEntry : compEntry.getValue().entrySet()) {
+        compProps.put(propEntry.getKey(), propEntry.getValue());
+      }
+      result.put(compEntry.getKey(), compProps);
+    }
+    return result;
   }
 
   public static Deque<StackFrame> get() {
