@@ -127,7 +127,7 @@ public class DebugPanel extends VerticalPanel {
     DisclosurePanel propertiesDisclosure = new DisclosurePanel("Properties");
     propertiesDisclosure.setContent(propertiesPanel);
     propertiesDisclosure.setWidth("100%");
-    propertiesDisclosure.setOpen(true);
+    propertiesDisclosure.setOpen(false);
     propertiesDisclosure.getElement().setId("aiPropertiesSection");
     propertiesDisclosure.getElement().getStyle().setProperty("border", "1px solid #ccc");
     propertiesDisclosure.getElement().getStyle().setProperty("display", "none");
@@ -256,16 +256,6 @@ public class DebugPanel extends VerticalPanel {
       return entry;
     };
 
-    var makeSectionHeader = function(label, marginTop) {
-      var section = top.document.createElement('div');
-      section.style.padding = '5px';
-      section.style.fontWeight = 'bold';
-      section.style.borderBottom = '1px solid #ddd';
-      if (marginTop) section.style.marginTop = marginTop;
-      section.innerText = label;
-      return section;
-    };
-
     var makeEmptyMsg = function(msg) {
       var content = top.document.createElement('div');
       content.style.color = '#999';
@@ -279,10 +269,18 @@ public class DebugPanel extends VerticalPanel {
       if (!container) return;
       container.innerHTML = '';
 
-      var renderSection = function(label, vars, emptyMsg, marginTop) {
-        container.appendChild(makeSectionHeader(label, marginTop));
+      var renderSection = function(label, vars, emptyMsg) {
+        var header = top.document.createElement('div');
+        header.style.padding = '5px';
+        header.style.fontWeight = 'bold';
+        header.style.borderBottom = '1px solid #ddd';
+        header.style.cursor = 'pointer';
+        header.style.userSelect = 'none';
+        header.innerText = label;
+
         var content = top.document.createElement('div');
         content.style.paddingLeft = '15px';
+        content.style.display = 'block';
         if (!vars || Object.keys(vars).length === 0) {
           content.appendChild(makeEmptyMsg(emptyMsg));
         } else {
@@ -290,17 +288,36 @@ public class DebugPanel extends VerticalPanel {
             if (vars.hasOwnProperty(k)) content.appendChild(makeEntryRow(k, vars[k]));
           }
         }
+
+        header.onclick = (function(d) {
+          return function() {
+            d.style.display = d.style.display === 'none' ? 'block' : 'none';
+          };
+        })(content);
+
+        container.appendChild(header);
         container.appendChild(content);
       };
 
-      renderSection('Locals', variables, '(No local variables)', null);
-      renderSection('Return', returnVariables, '(No return values)', '10px');
-      renderSection('Globals', globalVariables, '(No global variables)', '10px');
+      renderSection('Locals', variables, '(No local variables)');
+      renderSection('Return', returnVariables, '(No return values)');
+      renderSection('Globals', globalVariables, '(No global variables)');
     };
 
     top.DebugPanel_setProperties = function(componentProperties) {
       var container = top.document.getElementById('aiPropertiesPanel');
       if (!container) return;
+
+      var openComps = {};
+      var existingHeaders = container.querySelectorAll('[data-comp-name]');
+      for (var h = 0; h < existingHeaders.length; h++) {
+        var eh = existingHeaders[h];
+        var sib = eh.nextSibling;
+        if (sib && sib.style.display !== 'none') {
+          openComps[eh.getAttribute('data-comp-name')] = true;
+        }
+      }
+
       container.innerHTML = '';
 
       var designerProps = (top.Blockly && top.Blockly.BlocklyEditor)
@@ -336,20 +353,46 @@ public class DebugPanel extends VerticalPanel {
         return;
       }
 
-      var first = true;
-      for (var compName in componentProperties) {
-        if (!componentProperties.hasOwnProperty(compName)) continue;
+      var designerOrder = Object.keys(designerProps);
+      var compNames = Object.keys(componentProperties);
+      compNames.sort(function(a, b) {
+        var idxA = designerOrder.indexOf(a);
+        var idxB = designerOrder.indexOf(b);
+        if (idxA === -1) idxA = designerOrder.length;
+        if (idxB === -1) idxB = designerOrder.length;
+        return idxA - idxB;
+      });
+
+      for (var i = 0; i < compNames.length; i++) {
+        var compName = compNames[i];
         var props = componentProperties[compName];
         if (!props || Object.keys(props).length === 0) continue;
-        container.appendChild(makeSectionHeader(compName, first ? null : '10px'));
-        first = false;
+
+        var header = top.document.createElement('div');
+        header.style.padding = '5px';
+        header.style.fontWeight = 'bold';
+        header.style.borderBottom = '1px solid #ddd';
+        header.style.cursor = 'pointer';
+        header.style.userSelect = 'none';
+        header.setAttribute('data-comp-name', compName);
+        header.innerText = compName;
+
         var propsDiv = top.document.createElement('div');
         propsDiv.style.paddingLeft = '15px';
+        propsDiv.style.display = openComps[compName] ? 'block' : 'none';
         for (var propName in props) {
           if (props.hasOwnProperty(propName)) {
             propsDiv.appendChild(makeEntryRow(propName, props[propName]));
           }
         }
+
+        (function(h, d) {
+          h.onclick = function() {
+            d.style.display = d.style.display === 'none' ? 'block' : 'none';
+          };
+        })(header, propsDiv);
+
+        container.appendChild(header);
         container.appendChild(propsDiv);
       }
     };
@@ -561,7 +604,6 @@ public class DebugPanel extends VerticalPanel {
       labelSpan.style.color = '#c62828';
       entry.appendChild(labelSpan);
 
-      // × remove button
       var xBtn = doc.createElement('span');
       xBtn.innerText = '\u00d7';
       xBtn.title = 'Remove breakpoint';
