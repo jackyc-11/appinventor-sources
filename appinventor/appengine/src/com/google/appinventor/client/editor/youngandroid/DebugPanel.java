@@ -330,6 +330,14 @@ public class DebugPanel extends VerticalPanel {
         if (ws) db = ws.getComponentDatabase();
       } catch (e) {}
 
+      function parseColor(val) {
+        var s = String(val).trim();
+        if (s.length > 2 && s.charAt(0) === '&' && s.charAt(1).toUpperCase() === 'H') {
+          return parseInt(s.slice(2), 16) | 0;
+        }
+        return parseInt(s, 10) | 0;
+      }
+
       var filtered = {};
       for (var compName in componentProperties) {
         if (!componentProperties.hasOwnProperty(compName)) continue;
@@ -343,14 +351,16 @@ public class DebugPanel extends VerticalPanel {
           var runtimeVal = String(runtimeProps[propName]);
           var designerVal = designerCompProps.hasOwnProperty(propName)
               ? String(designerCompProps[propName]) : null;
-          if (designerVal === null) {
-            diffProps[propName] = runtimeProps[propName];
-            continue;
-          }
           var propDesc = instance && db.getPropertyForType(instance.typeName, propName);
           if (propDesc && propDesc.editorType === 'color') {
-            if ((parseInt(runtimeVal, 10) | 0) === (parseInt(designerVal, 10) | 0)) continue;
+            var compareVal = designerVal !== null ? designerVal
+                : (propDesc.defaultValue !== null ? String(propDesc.defaultValue) : null);
+            if (compareVal !== null && parseColor(runtimeVal) === parseColor(compareVal)) continue;
           } else {
+            if (designerVal === null) {
+              diffProps[propName] = runtimeProps[propName];
+              continue;
+            }
             if (runtimeVal.toLowerCase() === designerVal.toLowerCase()) continue;
           }
           diffProps[propName] = runtimeProps[propName];
