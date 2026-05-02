@@ -171,7 +171,7 @@ public interface OdeMessages extends Messages, ComponentTranslations {
   @Description("Label of the button for toggling the console panel")
   String toggleConsoleButton();
 
-  @DefaultMessage("Toggle Debug")
+  @DefaultMessage("Toggle Debugger")
   @Description("Label of the button for toggling the debug panel")
   String toggleDebugButton();
 
