@@ -167,10 +167,23 @@ public class DebugPanel extends VerticalPanel {
     breakpointsDisclosure.setWidth("100%");
     breakpointsDisclosure.setOpen(true);
     breakpointsDisclosure.getElement().getStyle().setProperty("border", "1px solid #ccc");
+    breakpointsDisclosure.getElement().setId("aiBreakpointsDisclosure");
     container.add(breakpointsDisclosure);
 
     add(container);
   }
+
+  @Override
+  protected void onLoad() {
+    super.onLoad();
+    initBreakpointsToggle();
+  }
+
+  private static native void initBreakpointsToggle() /*-{
+    if (typeof top.DebugPanel_initBreakpointsToggle === 'function') {
+      top.DebugPanel_initBreakpointsToggle();
+    }
+  }-*/;
 
   private static native void sendDebugContinue() /*-{
     if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.sendDebugContinue) {
@@ -213,6 +226,9 @@ public class DebugPanel extends VerticalPanel {
   }-*/;
 
   private static native void exportMethodsToJavascript() /*-{
+    var BP_ACTIVE_COLOR = '#c62828';
+    var BP_DISABLED_COLOR = '#9e9e9e';
+
     top.DebugPanel_showDebugToolbar = function() {
       var toolbar = top.document.getElementById('aiDebugToolbar');
       if (toolbar) {
@@ -606,8 +622,6 @@ public class DebugPanel extends VerticalPanel {
       top.DebugPanel_setVariables({}, {}, {});
     };
 
-    // ── Breakpoints panel ────────────────────────────────────────────────
-
     top.DebugPanel_addBreakpoint = function(blockId) {
       var container = top.document.getElementById('aiBreakpointsPanel');
       if (!container) return;
@@ -630,7 +644,8 @@ public class DebugPanel extends VerticalPanel {
 
       var labelSpan = doc.createElement('span');
       labelSpan.innerText = '\u25cf  ' + getBreakpointBlockLabel(blockId);
-      labelSpan.style.color = '#c62828';
+      var bpEnabled = !(top.Blockly && top.Blockly.ReplMgr) || top.Blockly.ReplMgr.breakpointsEnabled;
+      labelSpan.style.color = bpEnabled ? BP_ACTIVE_COLOR : BP_DISABLED_COLOR;
       entry.appendChild(labelSpan);
 
       var xBtn = doc.createElement('span');
@@ -675,7 +690,6 @@ public class DebugPanel extends VerticalPanel {
       if (!container) return;
       var entry = container.querySelector('[data-breakpoint-id="' + blockId + '"]');
       if (entry) entry.parentNode.removeChild(entry);
-      // Show empty-state message when no breakpoints remain
       if (!container.querySelector('[data-breakpoint-id]')) {
         var doc = container.ownerDocument || top.document;
         var emptyDiv = doc.createElement('div');
@@ -700,6 +714,52 @@ public class DebugPanel extends VerticalPanel {
       emptyDiv.style.fontStyle = 'italic';
       emptyDiv.innerText = '(No breakpoints set)';
       container.appendChild(emptyDiv);
+    };
+
+    top.DebugPanel_setBreakpointsEnabled = function(enabled) {
+      var toggle = top.document.getElementById('aiBreakpointsEnabledToggle');
+      if (toggle) toggle.checked = enabled;
+      var container = top.document.getElementById('aiBreakpointsPanel');
+      if (container) {
+        var entries = container.querySelectorAll('[data-breakpoint-id]');
+        for (var i = 0; i < entries.length; i++) {
+          var lbl = entries[i].querySelector('span:first-child');
+          if (lbl) lbl.style.color = enabled ? BP_ACTIVE_COLOR : BP_DISABLED_COLOR;
+        }
+      }
+    };
+
+    top.DebugPanel_initBreakpointsToggle = function() {
+      var section = top.document.getElementById('aiBreakpointsDisclosure');
+      if (!section) return;
+      if (top.document.getElementById('aiBreakpointsEnabledToggle')) return;
+      var header = section.querySelector('.header');
+      if (!header) return;
+      header.style.display = 'flex';
+      header.style.alignItems = 'center';
+      header.style.justifyContent = 'space-between';
+
+      var lbl = top.document.createElement('label');
+      lbl.className = 'bp-toggle-switch';
+      lbl.title = 'Enable/disable all breakpoints';
+      lbl.onclick = function(e) { e.stopPropagation(); };
+
+      var inp = top.document.createElement('input');
+      inp.type = 'checkbox';
+      inp.id = 'aiBreakpointsEnabledToggle';
+      inp.checked = true;
+      inp.onchange = function() {
+        if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.setBreakpointsEnabled) {
+          top.Blockly.ReplMgr.setBreakpointsEnabled(this.checked);
+        }
+      };
+
+      var slider = top.document.createElement('span');
+      slider.className = 'bp-toggle-slider';
+
+      lbl.appendChild(inp);
+      lbl.appendChild(slider);
+      header.appendChild(lbl);
     };
 
   }-*/;

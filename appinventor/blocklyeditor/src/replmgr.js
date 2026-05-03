@@ -201,7 +201,7 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
                 for (var i = 0; i < breakpoints.length; i++) {
                     this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:addBreakpoint "' + breakpoints[i] + '"))');
                 }
-                this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
+                this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode ' + (Blockly.ReplMgr.breakpointsEnabled ? '#t' : '#f') + '))');
             } else {
                 this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #f))');
             }
@@ -3791,6 +3791,7 @@ Blockly.ReplMgr.currentPausedBlockId = null;
 Blockly.ReplMgr.currentPausedStackDepth = 0;
 Blockly.ReplMgr.temporaryBreakpoints = new Set();
 Blockly.ReplMgr.temporaryExitBreakpoints = new Set();
+Blockly.ReplMgr.breakpointsEnabled = true;
 Blockly.ReplMgr.isSteppingOver = false;
 Blockly.ReplMgr.stepOverTargetDepth = 0;
 Blockly.ReplMgr.isSteppingInto = false;
@@ -3801,7 +3802,9 @@ Blockly.ReplMgr.notifyBreakpointAdded = function(blockId) {
     var rs = top.ReplState;
     if (rs && rs.phoneState && rs.phoneState.initialized) {
         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:addBreakpoint "' + blockId + '"))');
-        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
+        if (Blockly.ReplMgr.breakpointsEnabled) {
+            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
+        }
     }
     if (typeof top.DebugPanel_addBreakpoint === 'function') {
         top.DebugPanel_addBreakpoint(blockId);
@@ -3820,6 +3823,25 @@ Blockly.ReplMgr.notifyBreakpointRemoved = function(blockId) {
     }
     if (typeof top.DebugPanel_removeBreakpoint === 'function') {
         top.DebugPanel_removeBreakpoint(blockId);
+    }
+};
+
+Blockly.ReplMgr.setBreakpointsEnabled = function(enabled) {
+    Blockly.ReplMgr.breakpointsEnabled = enabled;
+    var rs = top.ReplState;
+    if (rs && rs.phoneState && rs.phoneState.initialized) {
+        if (enabled) {
+            var workspace = Blockly.common.getMainWorkspace();
+            var bkpts = workspace ? Blockly.BlocklyEditor.getBreakpoints(workspace) : [];
+            if (bkpts.length > 0) {
+                Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
+            }
+        } else {
+            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #f))');
+        }
+    }
+    if (typeof top.DebugPanel_setBreakpointsEnabled === 'function') {
+        top.DebugPanel_setBreakpointsEnabled(enabled);
     }
 };
 
