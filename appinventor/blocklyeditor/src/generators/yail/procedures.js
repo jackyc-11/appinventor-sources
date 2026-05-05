@@ -33,6 +33,24 @@ function buildParamSetup(arguments_, argPrefix) {
   return paramSetup;
 }
 
+function buildDebugYailWrapper(blockId, paramSetup, innerBody, fallback) {
+  var debugStopEx = 'com.google.appinventor.components.runtime.util.DebugStopException';
+  return '(if *this-is-the-repl*'
+    + ' (begin (StackFrame:pushFrame "' + blockId + '")'
+    + paramSetup
+    + ' (try-catch'
+    + ' ' + innerBody
+    + ' (exception ' + debugStopEx
+    + ' (begin (StackFrame:popFrame) (primitive-throw exception)))'
+    + ' (exception java.lang.Throwable'
+    + ' (begin (let ((wrapped (make WrappedException exception)))'
+    + ' (StackFrame:setErrorPaused #t)'
+    + ' (StackFrame:clear)'
+    + ' (RetValManager:sendErrorWithStackTrace wrapped)'
+    + ' (primitive-throw exception))))))'
+    + ' ' + fallback + ')';
+}
+
 // Generator code for procedure call with return
 // [lyn, 01/15/2013] Edited to remove STACK (no longer necessary with DO-THEN-RETURN)
 AI.Yail['procedures_defreturn'] = function() {
@@ -43,16 +61,10 @@ AI.Yail['procedures_defreturn'] = function() {
 
   var paramSetup = buildParamSetup(this.arguments_, argPrefix);
 
-  var wrappedReturnVal = '(if *this-is-the-repl* ' +
-                     '(begin (StackFrame:pushFrame "' + this.id + '")' +
-                     paramSetup +
-                     ' (try-catch' +
-                     ' (let ((result ' + returnVal + ')) (StackFrame:recordReturn "' + this.getFieldValue('NAME') + '" result) (StackFrame:popFrame) result)' +
-                     ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
-                     ' (begin (StackFrame:popFrame) (primitive-throw exception)))' +
-                     ' (exception java.lang.Throwable' +
-                     ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:setErrorPaused #t) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
-                     ' ' + returnVal + ')';
+  var innerBody = '(let ((result ' + returnVal + '))'
+    + ' (StackFrame:recordReturn "' + this.getFieldValue('NAME') + '" result)'
+    + ' (StackFrame:popFrame) result)';
+  var wrappedReturnVal = buildDebugYailWrapper(this.id, paramSetup, innerBody, returnVal);
 
   var args = this.arguments_.map(function (arg) {return argPrefix + arg;}).join(' ');
   var code = AI.Yail.YAIL_DEFINE + AI.Yail.YAIL_OPEN_COMBINATION + procName
@@ -70,16 +82,8 @@ AI.Yail['procedures_defnoreturn'] = function() {
 
   var paramSetup = buildParamSetup(this.arguments_, argPrefix);
 
-  var wrappedBody = '(if *this-is-the-repl* ' +
-                '(begin (StackFrame:pushFrame "' + this.id + '")' +
-                paramSetup +
-                ' (try-catch' +
-                ' (let ((result (begin ' + body + '))) (StackFrame:popFrame) result)' +
-                ' (exception com.google.appinventor.components.runtime.util.DebugStopException' +
-                ' (begin (StackFrame:popFrame) (primitive-throw exception)))' +
-                ' (exception java.lang.Throwable' +
-                ' (begin (let ((wrapped (make WrappedException exception))) (StackFrame:setErrorPaused #t) (StackFrame:clear) (RetValManager:sendErrorWithStackTrace wrapped) (primitive-throw exception))))))' +
-                ' (begin ' + body + '))';
+  var innerBody = '(let ((result (begin ' + body + '))) (StackFrame:popFrame) result)';
+  var wrappedBody = buildDebugYailWrapper(this.id, paramSetup, innerBody, '(begin ' + body + ')');
 
   var args = this.arguments_.map(function (arg) {return argPrefix + arg;}).join(' ');
   var code = AI.Yail.YAIL_DEFINE + AI.Yail.YAIL_OPEN_COMBINATION + procName

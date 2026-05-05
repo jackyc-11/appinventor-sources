@@ -373,11 +373,13 @@ public class DebugPanel extends VerticalPanel {
                 : (propDesc.defaultValue !== null ? String(propDesc.defaultValue) : null);
             if (compareVal !== null && parseColor(runtimeVal) === parseColor(compareVal)) continue;
           } else {
-            if (designerVal === null) {
+            var compareVal = designerVal !== null ? designerVal
+                : (propDesc && propDesc.defaultValue != null ? String(propDesc.defaultValue) : null);
+            if (compareVal !== null && runtimeVal.toLowerCase() === compareVal.toLowerCase()) continue;
+            if (compareVal === null) {
               diffProps[propName] = runtimeProps[propName];
               continue;
             }
-            if (runtimeVal.toLowerCase() === designerVal.toLowerCase()) continue;
           }
           diffProps[propName] = runtimeProps[propName];
         }

@@ -1172,13 +1172,13 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                 var isTemporaryBreakpoint = Blockly.ReplMgr.temporaryBreakpoints.has(r.blockid);
 
                 if (isTemporaryBreakpoint) {
-                    Blockly.ReplMgr.temporaryBreakpoints.delete(r.blockid);
                     var hitWs = Blockly.common.getMainWorkspace();
                     var hasPermanent = hitWs &&
                         Blockly.BlocklyEditor.getBreakpoints(hitWs).indexOf(r.blockid) !== -1;
                     if (!hasPermanent) {
                         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:removeBreakpoint "' + r.blockid + '"))');
                     }
+                    Blockly.ReplMgr.temporaryBreakpoints.delete(r.blockid);
                 }
 
                 Blockly.ReplMgr.temporaryExitBreakpoints.delete(r.blockid);
@@ -3793,7 +3793,6 @@ Blockly.ReplMgr.temporaryBreakpoints = new Set();
 Blockly.ReplMgr.temporaryExitBreakpoints = new Set();
 Blockly.ReplMgr.breakpointsEnabled = true;
 Blockly.ReplMgr.isSteppingOver = false;
-Blockly.ReplMgr.stepOverTargetDepth = 0;
 Blockly.ReplMgr.isSteppingInto = false;
 Blockly.ReplMgr.currentStackTrace = null;
 Blockly.ReplMgr.isPausedOnError = false;
@@ -3913,10 +3912,16 @@ Blockly.ReplMgr.clearDebuggerState = function() {
     }
 };
 
+Blockly.ReplMgr.clearErrorPausedState = function() {
+    Blockly.ReplMgr.clearDebuggerState();
+    if (typeof top.DebugPanel_clearCallStack === 'function') {
+        top.DebugPanel_clearCallStack();
+    }
+};
+
 Blockly.ReplMgr.sendDebugContinue = function() {
     if (Blockly.ReplMgr.isPausedOnError) {
-        Blockly.ReplMgr.clearDebuggerState();
-        if (typeof top.DebugPanel_clearCallStack === 'function') top.DebugPanel_clearCallStack();
+        Blockly.ReplMgr.clearErrorPausedState();
         Blockly.ReplMgr.putYail('(com.google.appinventor.components.runtime.util.StackFrame:continuePause)');
         return;
     }
@@ -3931,8 +3936,7 @@ Blockly.ReplMgr.sendDebugContinue = function() {
 
 Blockly.ReplMgr.sendDebugStepOver = function() {
     if (Blockly.ReplMgr.isPausedOnError) {
-        Blockly.ReplMgr.clearDebuggerState();
-        if (typeof top.DebugPanel_clearCallStack === 'function') top.DebugPanel_clearCallStack();
+        Blockly.ReplMgr.clearErrorPausedState();
         return;
     }
     var workspace = Blockly.common.getMainWorkspace();
@@ -3946,8 +3950,7 @@ Blockly.ReplMgr.sendDebugStepOver = function() {
 
 Blockly.ReplMgr.sendDebugStepDown = function() {
     if (Blockly.ReplMgr.isPausedOnError) {
-        Blockly.ReplMgr.clearDebuggerState();
-        if (typeof top.DebugPanel_clearCallStack === 'function') top.DebugPanel_clearCallStack();
+        Blockly.ReplMgr.clearErrorPausedState();
         return;
     }
     var workspace = Blockly.common.getMainWorkspace();
@@ -3961,8 +3964,7 @@ Blockly.ReplMgr.sendDebugStepDown = function() {
 
 Blockly.ReplMgr.sendDebugStepUp = function() {
     if (Blockly.ReplMgr.isPausedOnError) {
-        Blockly.ReplMgr.clearDebuggerState();
-        if (typeof top.DebugPanel_clearCallStack === 'function') top.DebugPanel_clearCallStack();
+        Blockly.ReplMgr.clearErrorPausedState();
         return;
     }
     var workspace = Blockly.common.getMainWorkspace();

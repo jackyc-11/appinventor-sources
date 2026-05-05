@@ -248,6 +248,7 @@ public class StackFrame implements Cloneable {
   public static void clear() {
     stepMode = StepMode.NONE;
     frames.get().clear();
+    isInEventHandler = false;
   }
 
   public static void setErrorPaused(boolean value) {
@@ -319,6 +320,7 @@ public class StackFrame implements Cloneable {
   }
 
   public static void stopExecution() {
+    isInEventHandler = false;
     pauseLock.lock();
     try {
       stepMode = StepMode.NONE;
