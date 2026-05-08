@@ -298,6 +298,10 @@ public class StackFrame implements Cloneable {
     return debugMode;
   }
 
+  public static boolean isInEventHandler() {
+    return isInEventHandler;
+  }
+
   public static void setStepIntoMode() {
     stepMode = StepMode.STEP_INTO;
   }

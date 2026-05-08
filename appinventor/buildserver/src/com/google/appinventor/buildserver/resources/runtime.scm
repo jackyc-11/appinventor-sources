@@ -52,17 +52,17 @@
             (apply values track-result)))
          (exception com.google.appinventor.components.runtime.errors.YailRuntimeError
           (begin
-            ;; IMPORTANT: Capture stack BEFORE clearing or exiting!
-            (let ((wrapped (make WrappedException exception)))
+            (let ((wrapped (make WrappedException exception))
+                  (in-handler (StackFrame:isInEventHandler)))
               (StackFrame:clear)
-              (RetValManager:sendErrorWithStackTrace wrapped)
+              (if in-handler (RetValManager:sendErrorWithStackTrace wrapped))
               (primitive-throw exception))))
          (exception java.lang.Throwable
           (begin
-            ;; IMPORTANT: Capture stack BEFORE clearing or exiting!
-            (let ((wrapped (make WrappedException exception)))
+            (let ((wrapped (make WrappedException exception))
+                  (in-handler (StackFrame:isInEventHandler)))
               (StackFrame:clear)
-              (RetValManager:sendErrorWithStackTrace wrapped)
+              (if in-handler (RetValManager:sendErrorWithStackTrace wrapped))
               (primitive-throw exception))))))
       (begin code ...)))))
 

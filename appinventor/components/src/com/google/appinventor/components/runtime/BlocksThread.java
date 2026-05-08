@@ -165,7 +165,6 @@ public class BlocksThread extends Thread {
           get().scheme.eval(sexpr);
         } catch (Throwable t) {
           Log.e(LOG_TAG, "", t);
-          RetValManager.sendError(t.toString());
         }
       }
     });
