@@ -193,6 +193,7 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             this.putYail(code);
             this.putYail(AI.Yail.YAIL_INIT_RUNTIME);
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clear))');
+            this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearErrorPaused))');
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearComponentProperties))');
 
             var breakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
@@ -1236,8 +1237,7 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                     top.DebugPanel_setProperties(r.componentProperties || {});
                 }
                 var errWs = Blockly.common.getMainWorkspace();
-                var hasBreakpoints = errWs && Blockly.BlocklyEditor.getBreakpoints(errWs).length > 0;
-                if (hasBreakpoints) {
+                if (errWs) {
                     var errorBlockId = null;
                     for (var frameIdx = 0; frameIdx < r.stacktrace.length; frameIdx++) {
                         var frame = r.stacktrace[frameIdx];
@@ -1251,7 +1251,11 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                         }
                     }
                     if (errorBlockId) {
+                        Blockly.ReplMgr.currentErrorBlockId = errorBlockId;
                         errWs.highlightBlock(errorBlockId);
+                        Blockly.Events.disable();
+                        errWs.centerOnBlock(errorBlockId);
+                        Blockly.Events.enable();
                     }
                 }
             }
@@ -3796,10 +3800,15 @@ Blockly.ReplMgr.isSteppingOver = false;
 Blockly.ReplMgr.isSteppingInto = false;
 Blockly.ReplMgr.currentStackTrace = null;
 Blockly.ReplMgr.isPausedOnError = false;
+Blockly.ReplMgr.currentErrorBlockId = null;
 
 Blockly.ReplMgr.notifyBreakpointAdded = function(blockId) {
     var rs = top.ReplState;
     if (rs && rs.phoneState && rs.phoneState.initialized) {
+        if (Blockly.ReplMgr.isPausedOnError) {
+            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearErrorPaused))');
+            Blockly.ReplMgr.isPausedOnError = false;
+        }
         Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:addBreakpoint "' + blockId + '"))');
         if (Blockly.ReplMgr.breakpointsEnabled) {
             Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
@@ -3833,6 +3842,10 @@ Blockly.ReplMgr.setBreakpointsEnabled = function(enabled) {
             var workspace = Blockly.common.getMainWorkspace();
             var bkpts = workspace ? Blockly.BlocklyEditor.getBreakpoints(workspace) : [];
             if (bkpts.length > 0) {
+                if (Blockly.ReplMgr.isPausedOnError) {
+                    Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearErrorPaused))');
+                    Blockly.ReplMgr.isPausedOnError = false;
+                }
                 Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setDebugMode #t))');
             }
         } else {
@@ -3848,6 +3861,16 @@ Blockly.ReplMgr.resetDebuggerUI = function() {
     var ws = Blockly.common.getMainWorkspace();
     if (ws) {
         ws.highlightBlock(null);
+        if (!ws._debugErrorHighlightListenerRegistered) {
+            ws.addChangeListener(function(e) {
+                if (e.type === Blockly.Events.VIEWPORT_CHANGE &&
+                        Blockly.ReplMgr.currentErrorBlockId) {
+                    ws.highlightBlock(null);
+                    Blockly.ReplMgr.currentErrorBlockId = null;
+                }
+            });
+            ws._debugErrorHighlightListenerRegistered = true;
+        }
     }
     Blockly.ReplMgr.isSteppingOver = false;
     Blockly.ReplMgr.isSteppingInto = false;
@@ -3855,6 +3878,7 @@ Blockly.ReplMgr.resetDebuggerUI = function() {
     Blockly.ReplMgr.currentPausedBlockId = null;
     Blockly.ReplMgr.currentPausedStackDepth = 0;
     Blockly.ReplMgr.currentStackTrace = null;
+    Blockly.ReplMgr.currentErrorBlockId = null;
     Blockly.ReplMgr.temporaryBreakpoints.clear();
     Blockly.ReplMgr.temporaryExitBreakpoints.clear();
     if (typeof top.DebugPanel_hideDebugToolbar === 'function') {
@@ -3885,7 +3909,7 @@ Blockly.ReplMgr.enterErrorPausedState = function() {
     var clearWs = Blockly.common.getMainWorkspace();
     var permanentSet = clearWs ? new Set(Blockly.BlocklyEditor.getBreakpoints(clearWs)) : new Set();
     Blockly.ReplMgr.clearTemporaryBreakpoints(permanentSet);
-    if (permanentSet.size > 0 && typeof top.DebugPanel_showDebugToolbar === 'function') {
+    if (permanentSet.size > 0 && Blockly.ReplMgr.breakpointsEnabled && typeof top.DebugPanel_showDebugToolbar === 'function') {
         top.DebugPanel_showDebugToolbar();
     }
 };
@@ -3898,6 +3922,7 @@ Blockly.ReplMgr.clearDebuggerState = function() {
     Blockly.ReplMgr.currentPausedBlockId = null;
     Blockly.ReplMgr.currentPausedStackDepth = 0;
     Blockly.ReplMgr.currentStackTrace = null;
+    Blockly.ReplMgr.currentErrorBlockId = null;
     var clearWs = Blockly.common.getMainWorkspace();
     if (clearWs) {
         clearWs.highlightBlock(null);

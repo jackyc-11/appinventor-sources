@@ -119,6 +119,9 @@ public class RetValManager {
     if (e.getCause() instanceof DebugStopException) {
       return;
     }
+    if (e.getBlockStackTrace().isEmpty()) {
+      return;
+    }
     synchronized (semaphore) {
       JSONObject retval = new JSONObject();
       try {
