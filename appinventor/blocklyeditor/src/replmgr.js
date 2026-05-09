@@ -194,6 +194,7 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             this.putYail(AI.Yail.YAIL_INIT_RUNTIME);
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clear))');
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearErrorPaused))');
+            this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setErrorPauseEnabled ' + (Blockly.ReplMgr.isDebugPanelOpen ? '#t' : '#f') + '))');
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearComponentProperties))');
 
             var breakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
@@ -1227,13 +1228,15 @@ Blockly.ReplMgr.processRetvals = function(responses) {
             break;
         case "error":
             console.log("processRetVals: Error value = " + r.value);
-            Blockly.ReplMgr.enterErrorPausedState();
+            if (Blockly.ReplMgr.isDebugPanelOpen) {
+                Blockly.ReplMgr.enterErrorPausedState();
+            }
             if (r.stacktrace && r.stacktrace.length > 0) {
-                if (typeof top.DebugPanel_setCallStack === 'function') {
+                if (Blockly.ReplMgr.isDebugPanelOpen && typeof top.DebugPanel_setCallStack === 'function') {
                     var globalVars = r.globals || {};
                     top.DebugPanel_setCallStack(r.stacktrace, r.value, globalVars, false);
                 }
-                if (typeof top.DebugPanel_setProperties === 'function') {
+                if (Blockly.ReplMgr.isDebugPanelOpen && typeof top.DebugPanel_setProperties === 'function') {
                     top.DebugPanel_setProperties(r.componentProperties || {});
                 }
                 var errWs = Blockly.common.getMainWorkspace();
@@ -3801,6 +3804,21 @@ Blockly.ReplMgr.isSteppingInto = false;
 Blockly.ReplMgr.currentStackTrace = null;
 Blockly.ReplMgr.isPausedOnError = false;
 Blockly.ReplMgr.currentErrorBlockId = null;
+Blockly.ReplMgr.isDebugPanelOpen = false;
+
+Blockly.ReplMgr.setDebugPanelOpen = function(isOpen) {
+    Blockly.ReplMgr.isDebugPanelOpen = isOpen;
+    var rs = top.ReplState;
+    if (rs && rs.phoneState && rs.phoneState.initialized) {
+        if (isOpen && !Blockly.ReplMgr.isPausedOnError) {
+            Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearErrorPaused))');
+        }
+        Blockly.ReplMgr.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setErrorPauseEnabled ' + (isOpen ? '#t' : '#f') + '))');
+    }
+    if (!isOpen && Blockly.ReplMgr.isPausedOnError) {
+        Blockly.ReplMgr.clearErrorPausedState();
+    }
+};
 
 Blockly.ReplMgr.notifyBreakpointAdded = function(blockId) {
     var rs = top.ReplState;
@@ -3909,7 +3927,7 @@ Blockly.ReplMgr.enterErrorPausedState = function() {
     var clearWs = Blockly.common.getMainWorkspace();
     var permanentSet = clearWs ? new Set(Blockly.BlocklyEditor.getBreakpoints(clearWs)) : new Set();
     Blockly.ReplMgr.clearTemporaryBreakpoints(permanentSet);
-    if (permanentSet.size > 0 && Blockly.ReplMgr.breakpointsEnabled && typeof top.DebugPanel_showDebugToolbar === 'function') {
+    if (typeof top.DebugPanel_showDebugToolbar === 'function') {
         top.DebugPanel_showDebugToolbar();
     }
 };

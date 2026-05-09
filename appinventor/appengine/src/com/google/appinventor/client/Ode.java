@@ -2511,10 +2511,17 @@ public class Ode implements EntryPoint {
     } else {
       debugPanel.setVisible(false);
     }
+    notifyDebugPanelOpen(visible);
     if (currentFileEditor != null) {
       currentFileEditor.resize();
     }
   }
+
+  private static native void notifyDebugPanelOpen(boolean isOpen) /*-{
+    if (top.Blockly && top.Blockly.ReplMgr && top.Blockly.ReplMgr.setDebugPanelOpen) {
+      top.Blockly.ReplMgr.setDebugPanelOpen(isOpen);
+    }
+  }-*/;
 
   /**
    * Indicate if the tutorial panel is currently visible.

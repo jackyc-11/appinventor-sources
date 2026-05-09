@@ -48,6 +48,7 @@ public class StackFrame implements Cloneable {
   private enum StepMode { NONE, STEP_INTO, STEP_OVER }
   private static volatile StepMode stepMode = StepMode.NONE;
   private static volatile boolean errorPaused = false;
+  private static volatile boolean errorPauseEnabled = false;
   private static volatile int capturedFrameDepth = 0;
   private static volatile int capturedBlockDepth = 0;
   private static volatile int stepTargetFrameDepth = 0;
@@ -202,7 +203,7 @@ public class StackFrame implements Cloneable {
       Log.w(LOG_TAG, "Attempted to exit block " + blockId + " but no frames exist");
       return null;
     }
-    if (debugMode && exitBreakpoints.remove(blockId)) {
+    if (debugMode && !errorPaused && exitBreakpoints.remove(blockId)) {
       pauseAt(blockId);
     }
     String topBlockId = myFrames.getFirst().pop();
@@ -218,6 +219,9 @@ public class StackFrame implements Cloneable {
 
   public static StackFrame pushFrame(String blockId) {
     isInEventHandler = true;
+    if (errorPaused && (errorPauseEnabled || debugMode)) {
+      throw new DebugStopException();
+    }
     if (debugMode && breakpoints.contains(blockId)) {
       pauseAt(blockId);
     }
@@ -249,6 +253,13 @@ public class StackFrame implements Cloneable {
     stepMode = StepMode.NONE;
     frames.get().clear();
     isInEventHandler = false;
+  }
+
+  public static void setErrorPauseEnabled(boolean enabled) {
+    errorPauseEnabled = enabled;
+    if (!enabled) {
+      clearErrorPaused();
+    }
   }
 
   public static void setErrorPaused(boolean value) {
@@ -376,10 +387,10 @@ public class StackFrame implements Cloneable {
   }
 
   private static void checkPauseConditions(String blockId) {
-    if (!debugMode) return;
-    if (errorPaused) {
+    if (errorPaused && (errorPauseEnabled || debugMode)) {
       throw new DebugStopException();
     }
+    if (!debugMode) return;
 
     boolean shouldPause = false;
 
