@@ -399,13 +399,16 @@ body {
   font-size: 13px;
   vertical-align: top;
   font-weight: bold;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .ode-CollapsablePanel .gwt-DisclosurePanel .header {
   border-top: 1px solid gray-300;
   border-bottom: 1px solid gray-300;
   background-color: clr-primary-500;
-  cursor: pointer;
+  cursor: default;
+  pointer-events: none;
   height: 14px;
   padding: 8px 16px;
 }

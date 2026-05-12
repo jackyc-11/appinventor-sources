@@ -744,6 +744,7 @@ public class DebugPanel extends VerticalPanel {
       var lbl = top.document.createElement('label');
       lbl.className = 'bp-toggle-switch';
       lbl.title = 'Enable/disable all breakpoints';
+      lbl.style.pointerEvents = 'auto';
       lbl.onclick = function(e) { e.stopPropagation(); };
 
       var inp = top.document.createElement('input');
