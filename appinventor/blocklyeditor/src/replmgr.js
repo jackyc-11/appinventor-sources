@@ -1256,9 +1256,9 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                     if (errorBlockId) {
                         Blockly.ReplMgr.currentErrorBlockId = errorBlockId;
                         errWs.highlightBlock(errorBlockId);
-                        Blockly.Events.disable();
+                        Blockly.ReplMgr.centeringOnErrorBlock = true;
                         errWs.centerOnBlock(errorBlockId);
-                        Blockly.Events.enable();
+                        Blockly.ReplMgr.centeringOnErrorBlock = false;
                     }
                 }
             }
@@ -3805,6 +3805,7 @@ Blockly.ReplMgr.currentStackTrace = null;
 Blockly.ReplMgr.isPausedOnError = false;
 Blockly.ReplMgr.currentErrorBlockId = null;
 Blockly.ReplMgr.isDebugPanelOpen = false;
+Blockly.ReplMgr.centeringOnErrorBlock = false;
 
 Blockly.ReplMgr.setDebugPanelOpen = function(isOpen) {
     Blockly.ReplMgr.isDebugPanelOpen = isOpen;
@@ -3882,7 +3883,8 @@ Blockly.ReplMgr.resetDebuggerUI = function() {
         if (!ws._debugErrorHighlightListenerRegistered) {
             ws.addChangeListener(function(e) {
                 if (e.type === Blockly.Events.VIEWPORT_CHANGE &&
-                        Blockly.ReplMgr.currentErrorBlockId) {
+                        Blockly.ReplMgr.currentErrorBlockId &&
+                        !Blockly.ReplMgr.centeringOnErrorBlock) {
                     ws.highlightBlock(null);
                     Blockly.ReplMgr.currentErrorBlockId = null;
                 }
