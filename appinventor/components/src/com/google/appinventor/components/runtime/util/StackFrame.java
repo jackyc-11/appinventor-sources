@@ -1,11 +1,13 @@
 package com.google.appinventor.components.runtime.util;
 
 import android.util.Log;
+import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.runtime.Component;
 import gnu.mapping.Symbol;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -32,7 +34,10 @@ public class StackFrame implements Cloneable {
 
   private static final Map<String, Map<String, String>> componentProperties =
       new java.util.concurrent.ConcurrentHashMap<>();
-
+  private static final Map<String, Component> registeredComponents =
+      new java.util.concurrent.ConcurrentHashMap<>();
+  private static final Map<Class<?>, List<java.lang.reflect.Method>> inspectableMethodCache =
+      new java.util.concurrent.ConcurrentHashMap<>();
   private static volatile boolean isInEventHandler = false;
 
   // Breakpoint management
@@ -166,8 +171,63 @@ public class StackFrame implements Cloneable {
     compProps.put(propName, value == null ? "null" : value.toString());
   }
 
+  public static void registerComponent(Component component) {
+    String name = component.Name();
+    if (name == null) return;
+    registeredComponents.put(name, component);
+    if (debugMode) {
+      Map<String, String> compProps = componentProperties.computeIfAbsent(
+          name, k -> new java.util.concurrent.ConcurrentHashMap<>());
+      readInspectableProps(component, compProps);
+    }
+  }
+
+  public static void notifyPropertyChange(Component component) {
+    if (!debugMode || paused) return;
+    String compName = component.Name();
+    Map<String, String> compProps = componentProperties.computeIfAbsent(
+        compName, k -> new java.util.concurrent.ConcurrentHashMap<>());
+    readInspectableProps(component, compProps);
+    RetValManager.sendPropertyUpdate();
+  }
+
+  private static void readInspectableProps(Component component, Map<String, String> target) {
+    for (java.lang.reflect.Method m : getInspectableMethods(component.getClass())) {
+      try {
+        Object val = m.invoke(component);
+        target.put(m.getName(), val == null ? "null" : val.toString());
+      } catch (Exception e) {
+        Log.w(LOG_TAG, "Failed to read " + m.getName() + " on " + component.Name(), e);
+      }
+    }
+  }
+
+  private static List<java.lang.reflect.Method> getInspectableMethods(Class<?> clazz) {
+    return inspectableMethodCache.computeIfAbsent(clazz, c -> {
+      List<java.lang.reflect.Method> methods = new ArrayList<>();
+      for (java.lang.reflect.Method m : c.getMethods()) {
+        SimpleProperty ann = m.getAnnotation(SimpleProperty.class);
+        if (ann != null && ann.inspectable() && m.getParameterCount() == 0) {
+          methods.add(m);
+        }
+      }
+      return Collections.unmodifiableList(methods);
+    });
+  }
+
   public static void clearComponentProperties() {
     componentProperties.clear();
+    registeredComponents.clear();
+    debugMode = false;
+  }
+
+  public static void sendCurrentProperties() {
+    for (Map.Entry<String, Component> entry : registeredComponents.entrySet()) {
+      Map<String, String> compProps = componentProperties.computeIfAbsent(
+          entry.getKey(), k -> new java.util.concurrent.ConcurrentHashMap<>());
+      readInspectableProps(entry.getValue(), compProps);
+    }
+    RetValManager.sendPropertyUpdate();
   }
 
   public static JSONObject getComponentPropertiesJson() throws JSONException {

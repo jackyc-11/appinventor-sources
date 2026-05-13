@@ -9,6 +9,7 @@ package com.google.appinventor.components.runtime;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.widget.TextView;
+
 import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.IsColor;
 import com.google.appinventor.components.annotations.PropertyCategory;
@@ -19,6 +20,7 @@ import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentConstants;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.runtime.util.EclairUtil;
+import com.google.appinventor.components.runtime.util.StackFrame;
 import com.google.appinventor.components.runtime.util.TextViewUtil;
 import com.google.appinventor.components.runtime.util.ViewUtil;
 
@@ -79,6 +81,8 @@ public abstract class TextBoxBase extends AndroidViewComponent
 
   // Keeps track of the previous text of the TextBox for the TextChanged event
   private String lastText = "";
+
+  private boolean suppressUserInputTracking = false;
 
   //The default text color of the textbox hint, according to theme
   private int hintColorDefault;
@@ -476,7 +480,7 @@ public abstract class TextBoxBase extends AndroidViewComponent
    *
    * @return  text box contents
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String Text() {
     return TextViewUtil.getText(view);
   }
@@ -496,7 +500,12 @@ public abstract class TextBoxBase extends AndroidViewComponent
       "programmer in the Designer or Blocks Editor, or it can be entered by " +
       "the user (unless the <code>Enabled</code> property is false).")
   public void Text(String text) {
-    TextViewUtil.setText(view, text);
+    suppressUserInputTracking = true;
+    try {
+      TextViewUtil.setText(view, text);
+    } finally {
+      suppressUserInputTracking = false;
+    }
   }
 
   /**
@@ -576,6 +585,9 @@ public abstract class TextBoxBase extends AndroidViewComponent
   public void onTextChanged(CharSequence s, int start, int before, int count) {
     if (!lastText.equals(view.getText().toString())) {
       TextChanged();
+      if (!suppressUserInputTracking) {
+        StackFrame.notifyPropertyChange(this);
+      }
     }
     lastText = s.toString();
   }

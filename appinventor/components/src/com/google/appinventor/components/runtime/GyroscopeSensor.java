@@ -15,6 +15,7 @@ import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.common.YaVersion;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -103,6 +104,7 @@ public class GyroscopeSensor extends AndroidNonvisibleComponent
       "timestamp parameter is the time in nanoseconds at which the event occurred.")
   public void GyroscopeChanged(
       float xAngularVelocity, float yAngularVelocity, float zAngularVelocity, long timestamp) {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "GyroscopeChanged",
         xAngularVelocity, yAngularVelocity, zAngularVelocity, timestamp);
   }
@@ -166,7 +168,7 @@ public class GyroscopeSensor extends AndroidNonvisibleComponent
    * @suppressdoc
    */
   @SimpleProperty(description = "The angular velocity around the X axis, in degrees per second.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float XAngularVelocity() {
     return xAngularVelocity;
   }
@@ -180,7 +182,7 @@ public class GyroscopeSensor extends AndroidNonvisibleComponent
    * @suppressdoc
    */
   @SimpleProperty(description = "The angular velocity around the Y axis, in degrees per second.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float YAngularVelocity() {
     return yAngularVelocity;
   }
@@ -194,7 +196,7 @@ public class GyroscopeSensor extends AndroidNonvisibleComponent
    * @suppressdoc
    */
   @SimpleProperty(description = "The angular velocity around the Z axis, in degrees per second.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float ZAngularVelocity() {
     return zAngularVelocity;
   }

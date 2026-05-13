@@ -122,7 +122,7 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
       "programmer, the SelectionIndex property is also changed to the first " +
       "item in the ListPicker with the given value.  If the value does not " +
       "appear, SelectionIndex will be set to 0.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String Selection() {
     return selection;
   }
@@ -199,7 +199,7 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
       "made to set this to a number less than 1 or greater than the number " +
       "of items in the ListPicker, SelectionIndex will be set to 0, and " +
       "Selection will be set to the empty text.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public int SelectionIndex() {
     return selectionIndex;
   }

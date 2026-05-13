@@ -23,6 +23,7 @@ import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.common.YaVersion;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import java.util.HashSet;
 import java.util.List;
@@ -246,6 +247,7 @@ public class ProximitySensor extends AndroidNonvisibleComponent
     // the key does not matter, since only one value is returned)
     notifyDataObservers("distance", distance);
 
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "ProximityChanged", this.distance);
   }
 
@@ -256,7 +258,7 @@ public class ProximitySensor extends AndroidNonvisibleComponent
    * @return distance
    */
   @SimpleProperty(category = PropertyCategory.BEHAVIOR,
-      description = "Returns the distance from the object to the device")
+      description = "Returns the distance from the object to the device", inspectable = true)
   public float Distance() {
     return distance;
   }

@@ -223,7 +223,7 @@ public final class Ball extends Sprite {
   @SimpleProperty(
       description = "The horizontal coordinate of the Ball, increasing as the Ball moves right. " +
           "If the property OriginAtCenter is true, the coordinate is for the center of the Ball; " +
-          "otherwise, it is for the leftmost point of the Ball.")
+          "otherwise, it is for the leftmost point of the Ball.", inspectable = true)
   @Override
   public double X() {
     return super.X();
@@ -237,7 +237,7 @@ public final class Ball extends Sprite {
   @SimpleProperty(
       description = "The vertical coordinate of the Ball, increasing as the Ball moves " +
           "down. If the property OriginAtCenter is true, the coordinate is for the center of the Ball; " +
-          "otherwise, it is for the uppermost point of the Ball.")
+          "otherwise, it is for the uppermost point of the Ball.", inspectable = true)
   @Override
   public double Y() {
     return super.Y();

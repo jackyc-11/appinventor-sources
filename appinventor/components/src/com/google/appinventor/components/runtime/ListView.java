@@ -35,6 +35,7 @@ import com.google.appinventor.components.common.LayoutType;
 import com.google.appinventor.components.common.ListOrientation;
 import com.google.appinventor.components.runtime.util.ElementsUtil;
 import com.google.appinventor.components.runtime.util.ErrorMessages;
+import com.google.appinventor.components.runtime.util.StackFrame;
 import com.google.appinventor.components.runtime.util.YailList;
 import com.google.appinventor.components.runtime.util.YailDictionary;
 import org.json.JSONArray;
@@ -380,7 +381,7 @@ public final class ListView extends AndroidViewComponent {
                                     + "If no item is selected, the value will be 0. If an attempt is made to set this "
                                     + "to a number less than 1 or greater than the number of stringItems in the ListView, "
                                     + "SelectionIndex will be set to 0, and Selection will be set to the empty text.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public int SelectionIndex() {
     return selectionIndex;
   }
@@ -423,7 +424,7 @@ public final class ListView extends AndroidViewComponent {
    * Returns the text in the `ListView` at the position of {@link #SelectionIndex(int)}.
    */
   @SimpleProperty(description = "The text value of the most recently selected item in the ListView.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String Selection() {
     return selection;
   }
@@ -488,6 +489,7 @@ public final class ListView extends AndroidViewComponent {
   @SimpleEvent(description = "Simple event to be raised after the an element has been chosen in the"
                                  + " list. The selected element is available in the Selection property.")
   public void AfterPicking() {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "AfterPicking");
   }
 

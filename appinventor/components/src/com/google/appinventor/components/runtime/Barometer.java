@@ -12,6 +12,7 @@ import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.YaVersion;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import android.hardware.Sensor;
 
@@ -47,6 +48,7 @@ public class Barometer extends SingleValueSensor {
    */
   @SimpleEvent
   public void AirPressureChanged(float pressure) {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "AirPressureChanged", pressure);
   }
 
@@ -57,7 +59,7 @@ public class Barometer extends SingleValueSensor {
    * @return the atmospheric pressure in hPa (millibar)
    */
   @SimpleProperty(description = "The air pressure in hPa (millibar), if the sensor is available " +
-      "and enabled.")
+      "and enabled.", inspectable = true)
    public float AirPressure() {
       return getValue();
   }

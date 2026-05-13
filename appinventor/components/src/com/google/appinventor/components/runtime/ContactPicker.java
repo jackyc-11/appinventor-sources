@@ -163,7 +163,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
    * Returns the full name of the selected contact, or the empty string if a name is unavailable.
    */
   @SimpleProperty(
-    category = PropertyCategory.BEHAVIOR)
+    category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String ContactName() {
     return ensureNotNull(contactName);
   }
@@ -173,7 +173,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
    * address is unavailable.
    */
   @SimpleProperty(
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String EmailAddress() {
     // Note(halabelson):  I am commenting out this test.  Android provider.Contacts was
     // deprecated in Donut, but email picking still seems to work on newer versions of the SDK.
@@ -209,7 +209,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
    * no phone number is associated with the contact.
    */
   @SimpleProperty(
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String PhoneNumber() {
     return ensureNotNull(phoneNumber);
   }

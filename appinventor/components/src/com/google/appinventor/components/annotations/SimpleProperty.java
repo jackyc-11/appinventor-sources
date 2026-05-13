@@ -38,4 +38,11 @@ public @interface SimpleProperty {
    * be indirectly set in the Designer but not accessed in Codeblocks.
    */
   boolean userVisible() default true;
+
+  /**
+   * If true, this property's value will be tracked in the debug panel's Properties section,
+   * since it may change due to user interaction or external events (sensors, etc.).
+   * Only set on getter methods.
+   */
+  boolean inspectable() default false;
 }

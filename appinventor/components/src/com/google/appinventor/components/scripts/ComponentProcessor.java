@@ -715,12 +715,17 @@ public abstract class ComponentProcessor extends AbstractProcessor {
     private String componentInfoName;
     private boolean color;
     private HelperKey helper;
+    private boolean inspectable;
 
     protected Property(String name, String description, String longDescription,
         PropertyCategory category, boolean userVisible, boolean deprecated) {
       super(name, description, longDescription, "Property", userVisible, deprecated);
       this.propertyCategory = category;
       // All other properties can be left as their defaults.
+    }
+
+    protected boolean isInspectable() {
+      return inspectable;
     }
 
     @Override
@@ -733,6 +738,7 @@ public abstract class ComponentProcessor extends AbstractProcessor {
       that.componentInfoName = componentInfoName;
       that.color = color;
       that.helper = helper;
+      that.inspectable = inspectable;
       return that;
     }
 
@@ -1957,6 +1963,7 @@ public abstract class ComponentProcessor extends AbstractProcessor {
     if (parameters.size() == 0) {
       // It is a getter.
       property.readable = true;
+      property.inspectable = simpleProperty.inspectable();
       typeMirror = executableType.getReturnType();
       if (typeMirror.getKind().equals(TypeKind.VOID)) {
         throw new RuntimeException("Property method is void and has no parameters: "
@@ -2696,6 +2703,7 @@ public abstract class ComponentProcessor extends AbstractProcessor {
           priorProperty.writable = priorProperty.writable || newProperty.writable;
           priorProperty.userVisible = priorProperty.isUserVisible() && newProperty.isUserVisible();
           priorProperty.deprecated = priorProperty.isDeprecated() && newProperty.isDeprecated();
+          priorProperty.inspectable = priorProperty.isInspectable() || newProperty.isInspectable();
           priorProperty.componentInfoName = componentInfo.name;
           priorProperty.color = newProperty.color || priorProperty.color;
         } else {

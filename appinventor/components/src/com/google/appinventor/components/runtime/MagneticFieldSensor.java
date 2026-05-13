@@ -19,6 +19,7 @@ import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.YaVersion;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 
 @DesignerComponent(
@@ -83,25 +84,30 @@ public class MagneticFieldSensor extends AndroidNonvisibleComponent implements S
 
   @SimpleEvent(description = "Triggers when magnetic field has changed, setting the new values in parameters.")
   public void MagneticChanged(float xStrength, float yStrength, float zStrength, double absoluteStrength) {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "MagneticChanged", xStrength, yStrength, zStrength, absoluteStrength);
   }
 
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the absolute strength of the field.")
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the absolute strength of the field.",
+      inspectable = true)
   public double AbsoluteStrength() {
     return absoluteStrength;
   }
 
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the field's strength in the X-axis.")
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the field's strength in the X-axis.",
+      inspectable = true)
   public float XStrength() {
     return xStrength;
   }
 
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the field's strength in the Y-axis.")
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the field's strength in the Y-axis.",
+      inspectable = true)
   public float YStrength() {
     return yStrength;
   }
 
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the field's strength in the Z-axis.")
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Indicates the field's strength in the Z-axis.",
+      inspectable = true)
   public float ZStrength() {
     return zStrength;
   }

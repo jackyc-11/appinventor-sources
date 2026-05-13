@@ -19,7 +19,7 @@ import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.YaVersion;
 import com.google.appinventor.components.runtime.util.Dates;
 import com.google.appinventor.components.runtime.util.ErrorMessages;
-
+import com.google.appinventor.components.runtime.util.StackFrame;
 import java.text.DateFormatSymbols;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -71,7 +71,6 @@ public class DatePicker extends ButtonBase {
         day);
 
     androidUIHandler = new Handler();
-
   }
 
   /**
@@ -79,7 +78,7 @@ public class DatePicker extends ButtonBase {
    * @return the year in numeric format
    */
   @SimpleProperty(description = "the Year that was last picked using the DatePicker",
-      category = PropertyCategory.APPEARANCE)
+      category = PropertyCategory.APPEARANCE, inspectable = true)
   public int Year() {
     return year;
   }
@@ -90,7 +89,7 @@ public class DatePicker extends ButtonBase {
    */
   @SimpleProperty(description = "the number of the Month that was last picked using the " +
       "DatePicker. Note that months start in 1 = January, 12 = December.",
-      category = PropertyCategory.APPEARANCE)
+      category = PropertyCategory.APPEARANCE, inspectable = true)
   public int Month() {
     return month;
   }
@@ -111,7 +110,7 @@ public class DatePicker extends ButtonBase {
    * @return the day in numeric format
    */
   @SimpleProperty(description = "the Day of the month that was last picked using the DatePicker.",
-    category = PropertyCategory.APPEARANCE)
+    category = PropertyCategory.APPEARANCE, inspectable = true)
   public int Day() {
     return day;
   }
@@ -212,6 +211,7 @@ public class DatePicker extends ButtonBase {
    */
   @SimpleEvent(description = "Event that runs after the user chooses a Date in the dialog")
   public void AfterDateSet() {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "AfterDateSet");
   }
 }

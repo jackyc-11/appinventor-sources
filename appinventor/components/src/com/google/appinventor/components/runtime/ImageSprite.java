@@ -341,7 +341,7 @@ public class ImageSprite extends Sprite {
 
   @SimpleProperty(
       description = "The horizontal coordinate of the origin of the ImageSprite, " +
-          "increasing as the ImageSprite moves right.")
+          "increasing as the ImageSprite moves right.", inspectable = true)
   @Override
   public double X() {
     return super.X();
@@ -349,7 +349,7 @@ public class ImageSprite extends Sprite {
 
   @SimpleProperty(
       description = "The vertical coordinate of the origin of the ImageSprite, " +
-          "increasing as the ImageSprite moves down.")
+          "increasing as the ImageSprite moves down.", inspectable = true)
   @Override
   public double Y() {
     return super.Y();

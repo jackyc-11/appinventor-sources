@@ -11,6 +11,7 @@ import com.google.appinventor.components.annotations.SimpleFunction;
 import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.runtime.errors.StopBlocksExecution;
 import com.google.appinventor.components.runtime.util.AnimationUtil;
+import com.google.appinventor.components.runtime.util.StackFrame;
 import android.content.Intent;
 
 /**
@@ -81,6 +82,7 @@ public abstract class Picker extends ButtonBase implements ActivityResultListene
    */
   @SimpleEvent
   public void AfterPicking() {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "AfterPicking");
   }
 }

@@ -295,6 +295,9 @@ public final class ComponentDescriptorGenerator extends ComponentProcessor {
     json.put("rw", prop.isUserVisible() ? prop.getRwString() : "invisible");
     json.put("deprecated", Boolean.toString(prop.isDeprecated()));
     json.put("category", prop.getCategory().getName());
+    if (prop.isInspectable()) {
+      json.put("inspectable", true);
+    }
     if (alwaysSend) {
       json.put("alwaysSend", true);
       json.put("defaultValue", defaultValue);

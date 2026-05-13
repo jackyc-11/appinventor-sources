@@ -19,6 +19,7 @@ import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.common.YaVersion;
 import com.google.appinventor.components.runtime.util.BulkPermissionRequest;
 import com.google.appinventor.components.runtime.util.ErrorMessages;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import android.content.Context;
 import android.location.Address;
@@ -293,6 +294,7 @@ public class LocationSensor extends AndroidNonvisibleComponent
     notifyDataObservers("altitude", altitude);
     notifyDataObservers("speed", speed);
 
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "LocationChanged", latitude, longitude, altitude, speed);
   }
 
@@ -480,7 +482,7 @@ public class LocationSensor extends AndroidNonvisibleComponent
    * If no value is available, 0 will be returned.
    * Longitude is a value between 180 (east) and -180 (west), where 0 marks the Prime Meridian.
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public double Longitude() {
     return longitude;
   }
@@ -490,7 +492,7 @@ public class LocationSensor extends AndroidNonvisibleComponent
    * If no value is available, 0 will be returned.
    * Latitude is a value between 90 (north) and -90 (south), where 0 marks the Equator.
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public double Latitude() {
       return latitude;
   }
@@ -507,7 +509,7 @@ public class LocationSensor extends AndroidNonvisibleComponent
    */
   @SimpleProperty(category = PropertyCategory.BEHAVIOR,
       description = "The most recently available altitude value, in meters.  If no value is "
-          + "available, 0 will be returned.")
+          + "available, 0 will be returned.", inspectable = true)
   public double Altitude() {
     return altitude;
   }
@@ -524,7 +526,7 @@ public class LocationSensor extends AndroidNonvisibleComponent
    */
   @SimpleProperty(category = PropertyCategory.BEHAVIOR,
       description = "The most recent measure of accuracy, in meters.  If no value is available, "
-          + "0 will be returned.")
+          + "0 will be returned.", inspectable = true)
   public double Accuracy() {
     if (lastLocation != null && lastLocation.hasAccuracy()) {
       return lastLocation.getAccuracy();

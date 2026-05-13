@@ -25,6 +25,7 @@ import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.common.YaVersion;
 import com.google.appinventor.components.runtime.util.ElementsUtil;
 import com.google.appinventor.components.runtime.util.HoneycombUtil;
+import com.google.appinventor.components.runtime.util.StackFrame;
 import com.google.appinventor.components.runtime.util.YailList;
 
 /**
@@ -56,6 +57,7 @@ public final class Spinner extends AndroidViewComponent implements OnItemSelecte
   private YailList items = new YailList();
   private int oldAdapterCount;
   private int oldSelectionIndex;
+  private boolean suppressUserInputTracking = false;
 
   public Spinner(ComponentContainer container) {
     super(container);
@@ -90,7 +92,7 @@ public final class Spinner extends AndroidViewComponent implements OnItemSelecte
    * Selection property getter method.
    */
   @SimpleProperty(description = "Returns the current selected item in the spinner ",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String Selection(){
     return SelectionIndex() == 0 ? "" : (String) view.getItemAtPosition(SelectionIndex() - 1);
   }
@@ -109,7 +111,7 @@ public final class Spinner extends AndroidViewComponent implements OnItemSelecte
    * Selection index property getter method.
    */
   @SimpleProperty(description = "The index of the currently selected item, starting at 1. If no " +
-      "item is selected, the value will be 0.", category = PropertyCategory.BEHAVIOR)
+      "item is selected, the value will be 0.", category = PropertyCategory.BEHAVIOR, inspectable = true)
   public int SelectionIndex(){
     return ElementsUtil.selectionIndex(view.getSelectedItemPosition() + 1, items);
   }
@@ -126,7 +128,12 @@ public final class Spinner extends AndroidViewComponent implements OnItemSelecte
       category = PropertyCategory.BEHAVIOR)
   public void SelectionIndex(int index){
     oldSelectionIndex = SelectionIndex();
-    view.setSelection(ElementsUtil.selectionIndex(index, items) - 1); // AI lists are 1-based
+    suppressUserInputTracking = true;
+    try {
+      view.setSelection(ElementsUtil.selectionIndex(index, items) - 1); // AI lists are 1-based
+    } finally {
+      suppressUserInputTracking = false;
+    }
   }
 
   /**
@@ -220,6 +227,9 @@ public final class Spinner extends AndroidViewComponent implements OnItemSelecte
       oldAdapterCount = adapter.getCount();
     } else {
       SelectionIndex(position + 1); // AI lists are 1-based
+      if (!suppressUserInputTracking) {
+        StackFrame.notifyPropertyChange(this);
+      }
       AfterSelecting(Selection());
     }
   }

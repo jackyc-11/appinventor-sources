@@ -18,6 +18,7 @@ import com.google.appinventor.components.common.YaVersion;
 import com.google.appinventor.components.runtime.util.FroyoUtil;
 import com.google.appinventor.components.runtime.util.OrientationSensorUtil;
 import com.google.appinventor.components.runtime.util.SdkLevel;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -41,11 +42,11 @@ import java.util.Set;
  * degrees:
  *
  *  - **Roll** : 0 degree when the device is level, increasing to 90 degrees as the device is
- *    tilted up onto its left side, and decreasing to −90 degrees when the device is tilted up onto
+ *    tilted up onto its left side, and decreasing to âˆ’90 degrees when the device is tilted up onto
  *    its right side.
  *  - **Pitch** : 0 degree when the device is level, increasing to 90 degrees as the device is
  *    tilted so its top is pointing down, then decreasing to 0 degree as it gets turned over.
- *    Similarly, as the device is tilted so its bottom points down, pitch decreases to −90 degrees,
+ *    Similarly, as the device is tilted so its bottom points down, pitch decreases to âˆ’90 degrees,
  *    then increases to 0 degree as it gets turned all the way over.
  *  - **Azimuth** : 0 degree when the top of the device is pointing north, 90 degrees when it is
  *    pointing east, 180 degrees when it is pointing south, 270 degrees when it is pointing west,
@@ -184,6 +185,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
     notifyDataObservers("pitch", pitch);
     notifyDataObservers("roll", roll);
 
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "OrientationChanged", azimuth, pitch, roll);
   }
 
@@ -239,7 +241,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
    *
    * @return  current pitch
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float Pitch() {
     return pitch;
   }
@@ -250,7 +252,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
    *
    * @return  current roll
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float Roll() {
     return roll;
   }
@@ -261,7 +263,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
    *
    * @return  current azimuth
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float Azimuth() {
     return azimuth;
   }
@@ -280,7 +282,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
    *
    * @return the angle in degrees
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float Angle() {
     return OrientationSensor.computeAngle(pitch, roll);
   }
@@ -318,7 +320,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
    *
    * @return the magnitude of the tilt, from 0 to 1
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public float Magnitude() {
     // Limit pitch and roll to 90; otherwise, the phone is upside down.
     // The official documentation falsely claims that the range of pitch and

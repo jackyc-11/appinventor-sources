@@ -194,7 +194,8 @@ public final class Switch extends ToggleBase<CompoundButton> {
    * @return  {@code true} indicates checked, {@code false} unchecked
    */
   @SimpleProperty(
-          category = PropertyCategory.BEHAVIOR)
+          category = PropertyCategory.BEHAVIOR,
+          inspectable = true)
   public boolean On() {
     return view.isChecked();
   }
@@ -211,8 +212,13 @@ public final class Switch extends ToggleBase<CompoundButton> {
           defaultValue = "False")
   @SimpleProperty
   public void On(boolean value) {
-    view.setChecked(value);
-    view.invalidate();
+    suppressUserInputTracking = true;
+    try {
+      view.setChecked(value);
+      view.invalidate();
+    } finally {
+      suppressUserInputTracking = false;
+    }
   }
 
   @Override

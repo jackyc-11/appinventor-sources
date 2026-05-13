@@ -100,7 +100,7 @@ public class FilePicker extends Picker {
    *
    * @return the selected file
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String Selection() {
     return selection;
   }

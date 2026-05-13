@@ -200,6 +200,35 @@ public class RetValManager {
     return trace;
   }
 
+  public static void sendPropertyUpdate() {
+    synchronized (semaphore) {
+      JSONObject retval = new JSONObject();
+      try {
+        retval.put("status", "OK");
+        retval.put("type", "propertyUpdate");
+        retval.put("componentProperties", StackFrame.getComponentPropertiesJson());
+      } catch (JSONException e) {
+        Log.e(LOG_TAG, "Error building property update", e);
+        return;
+      }
+      if (!currentArray.isEmpty()
+          && "propertyUpdate".equals(currentArray.get(currentArray.size() - 1).optString("type"))) {
+        currentArray.set(currentArray.size() - 1, retval);
+        if (PhoneStatus.getUseWebRTC()) {
+          webRTCsendCurrent();
+        }
+        return;
+      }
+      boolean sendNotify = currentArray.isEmpty();
+      currentArray.add(retval);
+      if (PhoneStatus.getUseWebRTC()) {
+        webRTCsendCurrent();
+      } else if (sendNotify) {
+        semaphore.notifyAll();
+      }
+    }
+  }
+
   public static void sendBreakpointHit(String blockId) {
     synchronized (semaphore) {
       JSONObject retval = new JSONObject();

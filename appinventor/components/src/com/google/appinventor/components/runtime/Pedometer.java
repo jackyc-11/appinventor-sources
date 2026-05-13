@@ -16,6 +16,7 @@ import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.common.YaVersion;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -203,6 +204,7 @@ public class Pedometer extends AndroidNonvisibleComponent
     notifyDataObservers("SimpleSteps", simpleSteps);
     notifyDataObservers("Distance", distance);
 
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "SimpleStep", simpleSteps, distance);
   }
 
@@ -221,6 +223,7 @@ public class Pedometer extends AndroidNonvisibleComponent
     notifyDataObservers("WalkSteps", walkSteps);
     notifyDataObservers("Distance", distance);
 
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "WalkStep", walkSteps, distance);
   }
 
@@ -284,7 +287,8 @@ public class Pedometer extends AndroidNonvisibleComponent
    * @return approximate distance traveled in meters.
    */
   @SimpleProperty(
-      category = PropertyCategory.BEHAVIOR, description = "The approximate distance traveled in meters.")
+      category = PropertyCategory.BEHAVIOR, description = "The approximate distance traveled in meters.",
+      inspectable = true)
   public float Distance() {
     return totalDistance;
   }
@@ -295,7 +299,8 @@ public class Pedometer extends AndroidNonvisibleComponent
    * @return time elapsed in milliseconds since the pedometer was started.
    */
   @SimpleProperty(
-      category = PropertyCategory.BEHAVIOR, description = "Time elapsed in milliseconds since the pedometer was started.")
+      category = PropertyCategory.BEHAVIOR, description = "Time elapsed in milliseconds since the pedometer was started.",
+      inspectable = true)
   public long ElapsedTime() {
     if (pedometerPaused) {
       return prevStopClockTime;
@@ -310,7 +315,8 @@ public class Pedometer extends AndroidNonvisibleComponent
    * @return the number of simple steps since the pedometer was started.
    */
   @SimpleProperty(category = PropertyCategory.BEHAVIOR,
-    description = "The number of simple steps taken since the pedometer has started.")
+    description = "The number of simple steps taken since the pedometer has started.",
+    inspectable = true)
   public int SimpleSteps() {
     return numStepsRaw;
   }
@@ -321,7 +327,8 @@ public class Pedometer extends AndroidNonvisibleComponent
    * @return the number of walk steps since the pedometer was started.
    */
   @SimpleProperty(category = PropertyCategory.BEHAVIOR,
-    description = "the number of walk steps taken since the pedometer has started.")
+    description = "the number of walk steps taken since the pedometer has started.",
+    inspectable = true)
   public int WalkSteps() {
     return numStepsWithFilter;
   }

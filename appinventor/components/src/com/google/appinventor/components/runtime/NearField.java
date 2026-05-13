@@ -22,6 +22,7 @@ import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.common.YaVersion;
 import com.google.appinventor.components.runtime.util.GingerbreadUtil;
 import com.google.appinventor.components.runtime.util.SdkLevel;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 /**
  * Non-visible component to provide NFC capabilities. For now this component supports the reading
@@ -93,6 +94,7 @@ implements OnStopListener, OnResumeListener, OnPauseListener, OnNewIntentListene
   public void TagRead(String message) {
     Log.d(TAG, "Tag read: got message " + message);
     tagContent = message;
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "TagRead", message);
   }
 
@@ -110,7 +112,7 @@ implements OnStopListener, OnResumeListener, OnPauseListener, OnNewIntentListene
   /**
    * Returns the content of the most recently received tag.
    */
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)//what does this mean?
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String LastMessage() {
     Log.d(TAG, "String message method stared");
     return tagContent;

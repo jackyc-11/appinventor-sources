@@ -14,6 +14,7 @@ import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.YaVersion;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import android.hardware.Sensor;
 
@@ -50,6 +51,7 @@ public class Thermometer extends SingleValueSensor {
    */
   @SimpleEvent(description = "Called when a change is detected in the temperature (in degrees Celsius).")
   public void TemperatureChanged(float temperature) {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "TemperatureChanged", temperature);
   }
 
@@ -60,7 +62,8 @@ public class Thermometer extends SingleValueSensor {
    *
    * @return the temperature in degrees Celsius
    */
-  @SimpleProperty(description = "The temperature in degrees Celsius, if the sensor is available and enabled")
+  @SimpleProperty(description = "The temperature in degrees Celsius, if the sensor is available and enabled",
+      inspectable = true)
    public float Temperature() {
     return getValue();
   }

@@ -94,7 +94,7 @@ public class ImagePicker extends Picker implements ActivityResultListener {
    * Path to the file containing the image that was selected.
    */
   @SimpleProperty(description = "Path to the file containing the image that was selected.",
-      category = PropertyCategory.BEHAVIOR)
+      category = PropertyCategory.BEHAVIOR, inspectable = true)
   public String Selection() {
     return selectionSavedImage;
   }

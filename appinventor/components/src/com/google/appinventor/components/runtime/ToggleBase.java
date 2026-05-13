@@ -13,6 +13,7 @@ import com.google.appinventor.components.annotations.SimpleEvent;
 import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.PropertyTypeConstants;
+import com.google.appinventor.components.runtime.util.StackFrame;
 import com.google.appinventor.components.runtime.util.TextViewUtil;
 
 import android.view.View;
@@ -48,6 +49,8 @@ public abstract class ToggleBase<T extends CompoundButton> extends AndroidViewCo
 
   // Whether the text is big or not
   private boolean isBigText = false;
+
+  protected boolean suppressUserInputTracking = false;
 
   /**
    * Creates a new ToggleBase component.
@@ -381,6 +384,9 @@ public abstract class ToggleBase<T extends CompoundButton> extends AndroidViewCo
   // OnCheckedChangeListener implementation
 
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    if (!suppressUserInputTracking) {
+      StackFrame.notifyPropertyChange(this);
+    }
     Changed();
   }
 

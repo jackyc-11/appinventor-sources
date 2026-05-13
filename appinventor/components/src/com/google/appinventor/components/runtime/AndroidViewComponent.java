@@ -16,6 +16,7 @@ import com.google.appinventor.components.annotations.SimplePropertyCopier;
 import com.google.appinventor.components.common.ComponentConstants;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.runtime.util.ErrorMessages;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 /**
  * Underlying base class for all components with views; not accessible to Simple programmers.
@@ -332,6 +333,7 @@ public abstract class AndroidViewComponent extends VisibleComponent {
   @Override
   public void setComponentName(final String componentName) {
     this.name = componentName;
+    StackFrame.registerComponent(this);
   }
 
   /**

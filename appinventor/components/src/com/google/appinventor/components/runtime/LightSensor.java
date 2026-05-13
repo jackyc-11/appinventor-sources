@@ -12,6 +12,7 @@ import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.YaVersion;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -57,6 +58,7 @@ public class LightSensor extends BufferedSingleValueSensor {
    */
   @SimpleEvent(description = "Called when a change is detected in the light level.")
   public void LightChanged(float lux) {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "LightChanged", lux);
   }
 
@@ -67,7 +69,7 @@ public class LightSensor extends BufferedSingleValueSensor {
    * @return lux
    */
   @SimpleProperty(description = "The most recent light level, in lux, if the sensor is available " +
-       "and enabled.")
+       "and enabled.", inspectable = true)
    public float Lux() {
     return getValue();
   }
@@ -78,7 +80,8 @@ public class LightSensor extends BufferedSingleValueSensor {
    *
    * @return lux
    */
-  @SimpleProperty(description = "The average of the 10 most recent light levels measured, in lux.")
+  @SimpleProperty(description = "The average of the 10 most recent light levels measured, in lux.",
+      inspectable = true)
    public float AverageLux() {
     return getAverageValue();
   }

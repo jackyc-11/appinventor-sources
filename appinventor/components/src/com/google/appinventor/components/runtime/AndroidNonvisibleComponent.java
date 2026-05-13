@@ -8,6 +8,7 @@ package com.google.appinventor.components.runtime;
 
 import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 /**
  * Base class for all non-visible components.
@@ -39,6 +40,7 @@ public abstract class AndroidNonvisibleComponent implements Component {
   @Override
   public void setComponentName(final String componentName) {
     this.componentName = componentName;
+    StackFrame.registerComponent(this);
   }
 
   /**

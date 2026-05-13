@@ -149,7 +149,7 @@ public class DebugPanel extends VerticalPanel {
     DisclosurePanel propertiesDisclosure = new DisclosurePanel("Properties");
     propertiesDisclosure.setContent(propertiesPanel);
     propertiesDisclosure.setWidth("100%");
-    propertiesDisclosure.setOpen(false);
+    propertiesDisclosure.setOpen(true);
     propertiesDisclosure.getElement().setId("aiPropertiesSection");
     propertiesDisclosure.getElement().getStyle().setProperty("border", "1px solid #ccc");
     container.add(propertiesDisclosure);
@@ -326,17 +326,11 @@ public class DebugPanel extends VerticalPanel {
       var container = top.document.getElementById('aiPropertiesPanel');
       if (!container) return;
 
-      var openComps = {};
-      var existingHeaders = container.querySelectorAll('[data-comp-name]');
-      for (var h = 0; h < existingHeaders.length; h++) {
-        var eh = existingHeaders[h];
-        var sib = eh.nextSibling;
-        if (sib && sib.style.display !== 'none') {
-          openComps[eh.getAttribute('data-comp-name')] = true;
-        }
+      if (componentProperties && Object.keys(componentProperties).length > 0) {
+        top.debugLastKnownProps = componentProperties;
+      } else {
+        componentProperties = top.debugLastKnownProps || {};
       }
-
-      container.innerHTML = '';
 
       var designerProps = (top.Blockly && top.Blockly.BlocklyEditor)
           ? (top.Blockly.BlocklyEditor.designerProperties || {})
@@ -391,12 +385,34 @@ public class DebugPanel extends VerticalPanel {
       }
       componentProperties = filtered;
 
+      var existingSections = {};
+      var existingHeaders = container.querySelectorAll('[data-comp-name]');
+      for (var h = 0; h < existingHeaders.length; h++) {
+        var eh = existingHeaders[h];
+        existingSections[eh.getAttribute('data-comp-name')] = {
+          header: eh,
+          propsDiv: eh.nextSibling
+        };
+      }
+
       if (Object.keys(componentProperties).length === 0) {
-        var emptyMsg = makeEmptyMsg('(No modified properties)');
-        emptyMsg.style.fontStyle = 'italic';
-        container.appendChild(emptyMsg);
+        for (var name in existingSections) {
+          var sec = existingSections[name];
+          if (sec.header.parentNode) sec.header.parentNode.removeChild(sec.header);
+          if (sec.propsDiv && sec.propsDiv.parentNode) sec.propsDiv.parentNode.removeChild(sec.propsDiv);
+        }
+        if (!container.querySelector('[data-empty-props]')) {
+          container.innerHTML = '';
+          var emptyMsg = makeEmptyMsg('(No modified properties)');
+          emptyMsg.style.fontStyle = 'italic';
+          emptyMsg.setAttribute('data-empty-props', '1');
+          container.appendChild(emptyMsg);
+        }
         return;
       }
+
+      var emptyEl = container.querySelector('[data-empty-props]');
+      if (emptyEl) emptyEl.parentNode.removeChild(emptyEl);
 
       var designerOrder = (top.Blockly && top.Blockly.BlocklyEditor &&
           top.Blockly.BlocklyEditor.designerComponentOrder &&
@@ -412,37 +428,75 @@ public class DebugPanel extends VerticalPanel {
         return idxA - idxB;
       });
 
+      for (var name in existingSections) {
+        if (!componentProperties.hasOwnProperty(name)) {
+          var sec = existingSections[name];
+          if (sec.header.parentNode) sec.header.parentNode.removeChild(sec.header);
+          if (sec.propsDiv && sec.propsDiv.parentNode) sec.propsDiv.parentNode.removeChild(sec.propsDiv);
+          delete existingSections[name];
+        }
+      }
+
       for (var i = 0; i < compNames.length; i++) {
         var compName = compNames[i];
         var props = componentProperties[compName];
         if (!props || Object.keys(props).length === 0) continue;
 
-        var header = top.document.createElement('div');
-        header.style.padding = '5px';
-        header.style.fontWeight = 'bold';
-        header.style.borderBottom = '1px solid #ddd';
-        header.style.cursor = 'pointer';
-        header.style.userSelect = 'none';
-        header.setAttribute('data-comp-name', compName);
-        header.innerText = compName;
-
-        var propsDiv = top.document.createElement('div');
-        propsDiv.style.paddingLeft = '15px';
-        propsDiv.style.display = openComps[compName] ? 'block' : 'none';
-        for (var propName in props) {
-          if (props.hasOwnProperty(propName)) {
-            propsDiv.appendChild(makeEntryRow(propName, props[propName]));
+        if (existingSections[compName]) {
+          var propsDiv = existingSections[compName].propsDiv;
+          if (propsDiv) {
+            var existingRows = {};
+            var rows = propsDiv.querySelectorAll('[data-prop-name]');
+            for (var r = 0; r < rows.length; r++) {
+              existingRows[rows[r].getAttribute('data-prop-name')] = rows[r];
+            }
+            for (var propName in props) {
+              if (!props.hasOwnProperty(propName)) continue;
+              if (existingRows[propName]) {
+                var valSpan = existingRows[propName].querySelector('span:last-child');
+                if (valSpan) valSpan.innerText = ' = ' + props[propName];
+              } else {
+                var row = makeEntryRow(propName, props[propName]);
+                row.setAttribute('data-prop-name', propName);
+                propsDiv.appendChild(row);
+              }
+            }
+            for (var existingProp in existingRows) {
+              if (!props.hasOwnProperty(existingProp)) {
+                existingRows[existingProp].parentNode.removeChild(existingRows[existingProp]);
+              }
+            }
           }
+        } else {
+          var header = top.document.createElement('div');
+          header.style.padding = '5px';
+          header.style.fontWeight = 'bold';
+          header.style.borderBottom = '1px solid #ddd';
+          header.style.cursor = 'pointer';
+          header.style.userSelect = 'none';
+          header.setAttribute('data-comp-name', compName);
+          header.innerText = compName;
+
+          var propsDiv = top.document.createElement('div');
+          propsDiv.style.paddingLeft = '15px';
+          propsDiv.style.display = 'none';
+          for (var propName in props) {
+            if (!props.hasOwnProperty(propName)) continue;
+            var row = makeEntryRow(propName, props[propName]);
+            row.setAttribute('data-prop-name', propName);
+            propsDiv.appendChild(row);
+          }
+
+          (function(h, d) {
+            h.onclick = function() {
+              d.style.display = d.style.display === 'none' ? 'block' : 'none';
+            };
+          })(header, propsDiv);
+
+          container.appendChild(header);
+          container.appendChild(propsDiv);
+          existingSections[compName] = { header: header, propsDiv: propsDiv };
         }
-
-        (function(h, d) {
-          h.onclick = function() {
-            d.style.display = d.style.display === 'none' ? 'block' : 'none';
-          };
-        })(header, propsDiv);
-
-        container.appendChild(header);
-        container.appendChild(propsDiv);
       }
     };
 

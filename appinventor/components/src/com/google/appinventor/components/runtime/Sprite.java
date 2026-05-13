@@ -212,7 +212,7 @@ public abstract class Sprite extends VisibleComponent
   @SimpleProperty(
       description = "Returns the %type%'s heading in degrees above the positive " +
           "x-axis.  Zero degrees is toward the right of the screen; 90 degrees is toward the " +
-          "top of the screen.")
+          "top of the screen.", inspectable = true)
   public double Heading() {
     return userHeading;
   }
@@ -295,7 +295,7 @@ public abstract class Sprite extends VisibleComponent
    */
   @SimpleProperty(
     description = "The speed at which the %type% moves. The %type% moves " +
-        "this many pixels every interval if enabled.")
+        "this many pixels every interval if enabled.", inspectable = true)
   public float Speed() {
     return speed;
   }

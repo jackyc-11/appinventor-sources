@@ -52,7 +52,8 @@ public final class CheckBox extends ToggleBase<android.widget.CheckBox> {
    */
   @SimpleProperty(
       category = PropertyCategory.BEHAVIOR,
-      description = "True if the box is checked, false otherwise.")
+      description = "True if the box is checked, false otherwise.",
+      inspectable = true)
   public boolean Checked() {
     return view.isChecked();
   }
@@ -67,8 +68,13 @@ public final class CheckBox extends ToggleBase<android.widget.CheckBox> {
       defaultValue = "False")
   @SimpleProperty
   public void Checked(boolean value) {
-    view.setChecked(value);
-    view.invalidate();
+    suppressUserInputTracking = true;
+    try {
+      view.setChecked(value);
+      view.invalidate();
+    } finally {
+      suppressUserInputTracking = false;
+    }
   }
 
 }

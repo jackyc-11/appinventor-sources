@@ -13,7 +13,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.SeekBar;
-
+import com.google.appinventor.components.runtime.util.StackFrame;
 import com.google.appinventor.components.annotations.DesignerComponent;
 import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.IsColor;
@@ -270,7 +270,7 @@ public class Slider extends AndroidViewComponent implements SeekBar.OnSeekBarCha
    * @return the slider thumb position
    */
   @SimpleProperty(category = PropertyCategory.APPEARANCE,
-      description = "Returns the position of slider thumb", userVisible = true)
+      description = "Returns the position of slider thumb", userVisible = true, inspectable = true)
   public float ThumbPosition() {
     return thumbPosition;
   }
@@ -491,6 +491,9 @@ public class Slider extends AndroidViewComponent implements SeekBar.OnSeekBarCha
           + ", reporting to user as: " + thumbPosition);
       }
 
+      if (fromUser) {
+        StackFrame.notifyPropertyChange(this);
+      }
       // Trigger the event, reporting this new value    
       PositionChanged(thumbPosition);
     }

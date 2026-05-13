@@ -16,7 +16,7 @@ import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.YaVersion;
 import com.google.appinventor.components.runtime.util.Dates;
 import com.google.appinventor.components.runtime.util.ErrorMessages;
-
+import com.google.appinventor.components.runtime.util.StackFrame;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.text.format.DateFormat;
@@ -70,7 +70,6 @@ public class TimePicker extends ButtonBase {
 
     instant = Dates.TimeInstant(hour, minute);
     androidUIHandler = new Handler();
-
   }
 
 
@@ -84,7 +83,7 @@ public class TimePicker extends ButtonBase {
       description = "The hour of the last time set using the time picker." +
       " The hour is in a 24 hour format. If the last time set was 11:53 pm" +
       ", this property will return 23.",
-      category = PropertyCategory.APPEARANCE)
+      category = PropertyCategory.APPEARANCE, inspectable = true)
   public int Hour() {
     return hour;
   }
@@ -97,7 +96,7 @@ public class TimePicker extends ButtonBase {
   */
   @SimpleProperty(
       description = "The minute of the last time set using the time picker",
-      category = PropertyCategory.APPEARANCE)
+      category = PropertyCategory.APPEARANCE, inspectable = true)
   public int Minute() {
     return minute;
   }
@@ -196,6 +195,7 @@ public class TimePicker extends ButtonBase {
   */
   @SimpleEvent(description="This event is run when a user has set the time in the popup dialog.")
   public void AfterTimeSet() {
+    StackFrame.notifyPropertyChange(this);
     EventDispatcher.dispatchEvent(this, "AfterTimeSet");
   }
 }

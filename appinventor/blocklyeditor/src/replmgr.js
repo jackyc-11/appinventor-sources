@@ -188,6 +188,7 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             phoneState.blockYail = {}; // Sorry, have to send the blocks again.
             this.resetDebuggerUI();
             this.putYail(AI.Yail.YAIL_CLEAR_FORM);
+            this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearComponentProperties))');
             // Tell the Companion the current form name
             this.putYail(AI.Yail.YAIL_SET_FORM_NAME_BEGIN + formName + AI.Yail.YAIL_SET_FORM_NAME_END);
             this.putYail(code);
@@ -195,7 +196,6 @@ Blockly.ReplMgr.buildYail = function(workspace, opt_force) {
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clear))');
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearErrorPaused))');
             this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:setErrorPauseEnabled ' + (Blockly.ReplMgr.isDebugPanelOpen ? '#t' : '#f') + '))');
-            this.putYail('(begin (com.google.appinventor.components.runtime.util.StackFrame:clearComponentProperties))');
 
             var breakpoints = Blockly.BlocklyEditor.getBreakpoints(workspace);
             if (breakpoints.length > 0) {
@@ -1268,6 +1268,12 @@ Blockly.ReplMgr.processRetvals = function(responses) {
             top.ConsolePanel_addLog(r.level, r.item);
             console.log("processRetVals: Log level = " + r.level);
             console.log("processRetVals: Log content = " + r.item);
+            break;
+        case "propertyUpdate":
+            if (typeof top.DebugPanel_setProperties === 'function') {
+                top.DebugPanel_setProperties(r.componentProperties || {});
+            }
+            break;
         }
     }
     var handler = Blockly.common.getMainWorkspace().getWarningHandler();
@@ -3906,6 +3912,10 @@ Blockly.ReplMgr.resetDebuggerUI = function() {
     }
     if (typeof top.DebugPanel_clearCallStack === 'function') {
         top.DebugPanel_clearCallStack();
+    }
+    top.debugLastKnownProps = null;
+    if (typeof top.DebugPanel_setProperties === 'function') {
+        top.DebugPanel_setProperties({});
     }
 };
 
