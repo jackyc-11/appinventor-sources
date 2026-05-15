@@ -39,6 +39,7 @@ public class StackFrame implements Cloneable {
   private static final Map<Class<?>, List<java.lang.reflect.Method>> inspectableMethodCache =
       new java.util.concurrent.ConcurrentHashMap<>();
   private static volatile boolean isInEventHandler = false;
+  private static volatile boolean formResetting = false;
 
   // Breakpoint management
   private static Set<String> breakpoints = Collections.synchronizedSet(new HashSet<>());
@@ -187,19 +188,26 @@ public class StackFrame implements Cloneable {
     String compName = component.Name();
     Map<String, String> compProps = componentProperties.computeIfAbsent(
         compName, k -> new java.util.concurrent.ConcurrentHashMap<>());
-    readInspectableProps(component, compProps);
-    RetValManager.sendPropertyUpdate();
+    if (readInspectableProps(component, compProps)) {
+      RetValManager.sendPropertyUpdate();
+    }
   }
 
-  private static void readInspectableProps(Component component, Map<String, String> target) {
+  private static boolean readInspectableProps(Component component, Map<String, String> target) {
+    boolean changed = false;
     for (java.lang.reflect.Method m : getInspectableMethods(component.getClass())) {
       try {
         Object val = m.invoke(component);
-        target.put(m.getName(), val == null ? "null" : val.toString());
+        String newVal = val == null ? "null" : val.toString();
+        String oldVal = target.put(m.getName(), newVal);
+        if (!newVal.equals(oldVal)) {
+          changed = true;
+        }
       } catch (Exception e) {
         Log.w(LOG_TAG, "Failed to read " + m.getName() + " on " + component.Name(), e);
       }
     }
+    return changed;
   }
 
   private static List<java.lang.reflect.Method> getInspectableMethods(Class<?> clazz) {
@@ -219,15 +227,6 @@ public class StackFrame implements Cloneable {
     componentProperties.clear();
     registeredComponents.clear();
     debugMode = false;
-  }
-
-  public static void sendCurrentProperties() {
-    for (Map.Entry<String, Component> entry : registeredComponents.entrySet()) {
-      Map<String, String> compProps = componentProperties.computeIfAbsent(
-          entry.getKey(), k -> new java.util.concurrent.ConcurrentHashMap<>());
-      readInspectableProps(entry.getValue(), compProps);
-    }
-    RetValManager.sendPropertyUpdate();
   }
 
   public static JSONObject getComponentPropertiesJson() throws JSONException {

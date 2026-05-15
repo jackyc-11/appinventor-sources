@@ -357,6 +357,7 @@ public class DebugPanel extends VerticalPanel {
         if (!runtimeProps) continue;
         var designerCompProps = designerProps[compName] || {};
         var instance = db && db.getInstance(compName);
+        if (!instance) continue;
         var diffProps = {};
         for (var propName in runtimeProps) {
           if (!runtimeProps.hasOwnProperty(propName)) continue;

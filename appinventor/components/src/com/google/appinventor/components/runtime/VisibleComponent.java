@@ -9,6 +9,7 @@ package com.google.appinventor.components.runtime;
 import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
+import com.google.appinventor.components.runtime.util.StackFrame;
 
 /**
  * Superclass of visible components in the runtime libraries.
@@ -86,6 +87,7 @@ public abstract class VisibleComponent implements Component {
   @Override
   public void setComponentName(final String componentName) {
     this.componentName = componentName;
+    StackFrame.registerComponent(this);
   }
 
   @SimpleProperty
