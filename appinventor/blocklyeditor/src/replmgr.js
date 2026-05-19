@@ -1254,11 +1254,11 @@ Blockly.ReplMgr.processRetvals = function(responses) {
                         }
                     }
                     if (errorBlockId) {
-                        Blockly.ReplMgr.currentErrorBlockId = errorBlockId;
-                        errWs.highlightBlock(errorBlockId);
                         Blockly.Events.disable();
                         errWs.centerOnBlock(errorBlockId);
                         Blockly.Events.enable();
+                        Blockly.ReplMgr.currentErrorBlockId = errorBlockId;
+                        errWs.highlightBlock(errorBlockId);
                     }
                 }
             }
